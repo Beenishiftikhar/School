@@ -1,0 +1,2580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oriental Public School — Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: {
+                            50: '#ecfdf5',
+                            100: '#d1fae5',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            900: '#064e3b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @media print {
+            body * { visibility: hidden; }
+            #printableArea, #printableArea * { visibility: visible; }
+            #printableArea { position: fixed; inset: 0; background: white; padding: 24px; z-index: 9999; }
+            .no-print { display: none !important; }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-brand-600 selection:text-white overflow-x-hidden">
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- ===================================================================== -->
+    <!-- 1. AUTHENTICATION & ROLE-BASED LOGIN GATE                             -->
+    <!-- ===================================================================== -->
+    <div id="loginScreen" class="min-h-screen bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900 flex items-center justify-center p-4 sm:p-6">
+        <div class="max-w-5xl w-full grid grid-cols-1 lg:grid-cols-12 bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/20">
+            
+            <!-- Left Branding & Quick Demo Autofill Panel -->
+            <div class="lg:col-span-5 bg-slate-900 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden">
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-brand-600/30 shrink-0">
+                            <i data-lucide="landmark" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-lg font-extrabold tracking-tight leading-tight">Oriental Public School</h1>
+                            <p class="text-xs text-emerald-400 font-semibold">Principal: Iftikhar Hussain</p>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-bold leading-snug">Campus ERP & Academic Portal</h2>
+                    <p class="text-xs text-slate-400 mt-2 leading-relaxed">
+                        Sign in with your assigned Role ID & Password. Each teacher and student account is strictly isolated to their own academic records and class sections.
+                    </p>
+
+                    <!-- Quick Demo Login Cards -->
+                    <div class="mt-6">
+                        <p class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 mb-2.5 flex items-center gap-1.5">
+                            <i data-lucide="zap" class="w-3.5 h-3.5"></i> One-Click Demo Autofill
+                        </p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                            <button type="button" onclick="quickFillLogin('principal', 'principal', '1234')" class="text-left p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-brand-500 transition-all flex items-center justify-between group">
+                                <div>
+                                    <p class="text-xs font-bold text-white group-hover:text-emerald-300">Principal — Iftikhar Hussain</p>
+                                    <p class="text-[11px] text-slate-400 font-mono">ID: principal • Pass: 1234</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Full Access</span>
+                            </button>
+
+                            <button type="button" onclick="quickFillLogin('admin', 'admin', '1234')" class="text-left p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-sky-500 transition-all flex items-center justify-between group">
+                                <div>
+                                    <p class="text-xs font-bold text-white group-hover:text-sky-300">Admin Office — Clerk Desk</p>
+                                    <p class="text-[11px] text-slate-400 font-mono">ID: admin • Pass: 1234</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-lg bg-sky-500/20 text-sky-300 text-[10px] font-bold">Admin</span>
+                            </button>
+
+                            <button type="button" onclick="quickFillLogin('teacher', 'TCH-101', '1234')" class="text-left p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-amber-500 transition-all flex items-center justify-between group">
+                                <div>
+                                    <p class="text-xs font-bold text-white group-hover:text-amber-300">Teacher — Sir Kamran Ahmed</p>
+                                    <p class="text-[11px] text-slate-400 font-mono">ID: TCH-101 • Pass: 1234</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300 text-[10px] font-bold">Faculty</span>
+                            </button>
+
+                            <button type="button" onclick="quickFillLogin('student', 'OPS-1001', '1234')" class="text-left p-2.5 rounded-xl bg-slate-800/90 hover:bg-slate-800 border border-slate-700/80 hover:border-purple-500 transition-all flex items-center justify-between group">
+                                <div>
+                                    <p class="text-xs font-bold text-white group-hover:text-purple-300">Student — Ali Raza (10-A)</p>
+                                    <p class="text-[11px] text-slate-400 font-mono">ID: OPS-1001 • Pass: 1234</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-lg bg-purple-500/20 text-purple-300 text-[10px] font-bold">Student</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="relative z-10 mt-6 pt-4 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Session 2026–2027</span>
+                    <span>Lahore, Pakistan</span>
+                </div>
+            </div>
+
+            <!-- Right Login Form -->
+            <div class="lg:col-span-7 p-6 sm:p-10 flex flex-col justify-center bg-white">
+                <div class="mb-6">
+                    <span class="px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-bold">Secure Portal Sign In</span>
+                    <h3 class="text-2xl font-extrabold text-slate-900 mt-2">Select Your Role & Login</h3>
+                    <p class="text-xs text-slate-500 mt-1">Choose your portal role below and enter your credentials</p>
+                </div>
+
+                <!-- 4 Role Tabs -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-2xl mb-6">
+                    <button type="button" onclick="selectLoginRole('principal')" data-login-role="principal" class="login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-brand-600 text-white shadow-sm">
+                        <i data-lucide="crown" class="w-4 h-4"></i> Principal
+                    </button>
+                    <button type="button" onclick="selectLoginRole('admin')" data-login-role="admin" class="login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900">
+                        <i data-lucide="shield-check" class="w-4 h-4"></i> Admin
+                    </button>
+                    <button type="button" onclick="selectLoginRole('teacher')" data-login-role="teacher" class="login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900">
+                        <i data-lucide="book-open-check" class="w-4 h-4"></i> Teacher
+                    </button>
+                    <button type="button" onclick="selectLoginRole('student')" data-login-role="student" class="login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900">
+                        <i data-lucide="graduation-cap" class="w-4 h-4"></i> Student
+                    </button>
+                </div>
+
+                <!-- Validation Error Banner -->
+                <div id="loginErrorBanner" class="hidden mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+                    <i data-lucide="alert-circle" class="w-4 h-4 shrink-0"></i>
+                    <span id="loginErrorText">Invalid ID or Password for selected role.</span>
+                </div>
+
+                <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+                    <div>
+                        <label id="loginIdLabel" class="block text-xs font-bold text-slate-700 mb-1.5">Principal User ID</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i data-lucide="user" class="w-4 h-4"></i>
+                            </span>
+                            <input type="text" id="loginUserId" required placeholder="Enter ID (e.g., principal)" class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1.5">Password</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-slate-400">
+                                <i data-lucide="lock" class="w-4 h-4"></i>
+                            </span>
+                            <input type="password" id="loginPassword" required placeholder="Enter your password" class="w-full pl-10 pr-11 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-600">
+                            <button type="button" onclick="togglePasswordVisibility()" class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-700">
+                                <i id="passwordEyeIcon" data-lucide="eye" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between pt-1">
+                        <label class="inline-flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
+                            <input type="checkbox" id="rememberSession" checked class="rounded text-brand-600 focus:ring-brand-500">
+                            <span>Remember my session on this device</span>
+                        </label>
+                        <button type="button" onclick="showAllDemoCredentialsModal()" class="text-xs font-semibold text-brand-600 hover:underline">
+                            View All Sample IDs
+                        </button>
+                    </div>
+
+                    <button type="submit" class="w-full py-3.5 bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm rounded-xl shadow-lg shadow-brand-600/20 transition-all flex items-center justify-center gap-2 mt-2">
+                        <i data-lucide="log-in" class="w-4 h-4"></i>
+                        <span id="loginSubmitBtnText">Sign In as Principal</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. AUTHENTICATED PORTAL SHELL (HIDDEN UNTIL LOGGED IN)                -->
+    <!-- ===================================================================== -->
+    <div id="authenticatedApp" class="hidden">
+        <!-- Mobile Backdrop -->
+        <div id="sidebarBackdrop" onclick="toggleSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-30 hidden lg:hidden"></div>
+
+        <div class="flex min-h-screen">
+            <!-- Sidebar -->
+            <aside id="sidebar" class="fixed lg:static inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-300 -translate-x-full lg:translate-x-0 shadow-2xl lg:shadow-none">
+                <!-- School Branding -->
+                <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-brand-500 to-emerald-700 flex items-center justify-center text-white shadow-lg shadow-brand-600/30 shrink-0">
+                            <i data-lucide="landmark" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-white font-bold text-base leading-tight tracking-tight">Oriental Public School</h2>
+                            <p class="text-[11px] text-emerald-400 font-medium mt-0.5">Principal: Iftikhar Hussain</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleSidebar()" class="lg:hidden text-slate-400 hover:text-white p-1">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <!-- Authenticated Account Card (Strictly Locked to Logged-in User) -->
+                <div class="px-4 pt-4">
+                    <div class="bg-slate-800/80 border border-slate-700/70 rounded-2xl p-3.5">
+                        <div class="flex items-center justify-between text-[10px] uppercase tracking-wider font-semibold text-slate-400 mb-1.5">
+                            <span>Authenticated User</span>
+                            <span id="sidebarRoleBadge" class="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">Principal</span>
+                        </div>
+                        <p id="sidebarUserName" class="text-sm font-bold text-white truncate">Iftikhar Hussain</p>
+                        <p id="sidebarUserSub" class="text-xs text-slate-400 truncate mt-0.5">ID: principal</p>
+                    </div>
+                </div>
+
+                <!-- Dynamic Role Navigation -->
+                <nav id="sidebarNav" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+                    <!-- Populated dynamically by role -->
+                </nav>
+
+                <!-- Footer Logout & Reset -->
+                <div class="p-4 border-t border-slate-800 space-y-2">
+                    <button onclick="logoutUser()" class="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl text-xs font-bold bg-rose-600/15 text-rose-400 hover:bg-rose-600 hover:text-white border border-rose-500/20 transition-colors">
+                        <i data-lucide="log-out" class="w-4 h-4"></i>
+                        <span>Sign Out / Switch Role</span>
+                    </button>
+                    <button onclick="confirmResetData()" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-[11px] font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors">
+                        <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+                        <span>Reset School Demo Data</span>
+                    </button>
+                </div>
+            </aside>
+
+            <!-- Main Content Wrapper -->
+            <div class="flex-1 flex flex-col min-w-0">
+                <!-- Top Header -->
+                <header class="bg-white border-b border-slate-200 px-4 sm:px-6 py-3.5 sticky top-0 z-20">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-3">
+                            <button onclick="toggleSidebar()" class="lg:hidden p-2 rounded-xl text-slate-600 hover:bg-slate-100">
+                                <i data-lucide="menu" class="w-5 h-5"></i>
+                            </button>
+                            <div>
+                                <h1 id="headerPageTitle" class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">Executive Dashboard</h1>
+                                <p id="headerPageSubtitle" class="text-xs text-slate-500">Oriental Public School • Principal Iftikhar Hussain</p>
+                            </div>
+                        </div>
+
+                        <!-- Top Right Authenticated Badge & Logout Button -->
+                        <div class="flex items-center gap-2.5">
+                            <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                                <span id="headerAccountBadge">Iftikhar Hussain (Principal)</span>
+                            </div>
+                            <button onclick="logoutUser()" class="px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-600 hover:text-white border border-rose-200 hover:border-rose-600 text-xs font-bold transition-all flex items-center gap-1.5">
+                                <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Dynamic Page Body -->
+                <main id="mainContent" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+                    <!-- Rendered dynamically -->
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <!-- Universal Modal Container -->
+    <div id="appModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden items-center justify-center p-4">
+        <div id="appModalBox" class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+            <!-- Dynamic modal body -->
+        </div>
+    </div>
+
+    <script>
+        // =========================================================================
+        // 1. SEED DATA, CREDENTIALS & STORAGE ENGINE
+        // =========================================================================
+        const STORAGE_KEY = 'oriental_public_school_erp_v2';
+        const SESSION_KEY = 'oriental_public_school_session_v2';
+        const TODAY_DATE = '2026-11-13';
+
+        const DEFAULT_STATE = {
+            schoolName: 'Oriental Public School',
+            principalName: 'Iftikhar Hussain',
+            principalAccount: { id: 'principal', password: '1234', name: 'Iftikhar Hussain' },
+            adminAccount: { id: 'admin', password: '1234', name: 'Office Admin Desk' },
+            classes: ['Class 8-A', 'Class 9-A', 'Class 10-A'],
+            teachers: [
+                { id: 'TCH-101', password: '1234', name: 'Sir Kamran Ahmed', subject: 'Mathematics', assignedClasses: ['Class 10-A', 'Class 9-A'], salary: 65000, bonus: 3000, salaryStatus: 'Paid', contact: '0300-4123456', attendanceToday: 'Present' },
+                { id: 'TCH-102', password: '1234', name: 'Madam Ayesha Tariq', subject: 'Physics', assignedClasses: ['Class 10-A', 'Class 9-A'], salary: 62000, bonus: 0, salaryStatus: 'Paid', contact: '0321-5567890', attendanceToday: 'Present' },
+                { id: 'TCH-103', password: '1234', name: 'Sir Usman Ghani', subject: 'English', assignedClasses: ['Class 8-A', 'Class 10-A'], salary: 55000, bonus: 2000, salaryStatus: 'Pending', contact: '0333-9988776', attendanceToday: 'Present' },
+                { id: 'TCH-104', password: '1234', name: 'Madam Sadia Malik', subject: 'Urdu & Islamiat', assignedClasses: ['Class 8-A', 'Class 9-A', 'Class 10-A'], salary: 52000, bonus: 0, salaryStatus: 'Pending', contact: '0301-7766554', attendanceToday: 'Late' },
+                { id: 'TCH-105', password: '1234', name: 'Sir Bilal Hassan', subject: 'Computer Science', assignedClasses: ['Class 8-A', 'Class 10-A'], salary: 60000, bonus: 2500, salaryStatus: 'Paid', contact: '0345-2233445', attendanceToday: 'Present' }
+            ],
+            students: [
+                { id: 'OPS-1001', password: '1234', rollNo: '10A-01', name: 'Ali Raza', className: 'Class 10-A', parentName: 'Muhammad Raza', parentContact: '0300-8411223', monthlyFee: 4500, feeDueDate: '2026-11-15', feeStatus: 'Paid', attendancePct: 96, attendanceToday: 'Present', marks: { Mathematics: 91, Physics: 88, English: 84, Urdu: 89, 'Computer Science': 95 }, progressRemark: 'Excellent analytical skills. Consistent top performer in Class 10-A.' },
+                { id: 'OPS-1002', password: '1234', rollNo: '10A-02', name: 'Sara Khan', className: 'Class 10-A', parentName: 'Tariq Khan', parentContact: '0321-4455667', monthlyFee: 4500, feeDueDate: '2026-11-15', feeStatus: 'Pending', attendancePct: 92, attendanceToday: 'Present', marks: { Mathematics: 85, Physics: 82, English: 93, Urdu: 91, 'Computer Science': 87 }, progressRemark: 'Strong command over languages and science. Keep up the momentum.' },
+                { id: 'OPS-1005', password: '1234', rollNo: '10A-03', name: 'Hamza Sheikh', className: 'Class 10-A', parentName: 'Nadeem Sheikh', parentContact: '0333-1122334', monthlyFee: 4500, feeDueDate: '2026-11-10', feeStatus: 'Unpaid', attendancePct: 81, attendanceToday: 'Absent', marks: { Mathematics: 68, Physics: 71, English: 74, Urdu: 76, 'Computer Science': 79 }, progressRemark: 'Needs to improve punctuality and focus more on Physics numericals.' },
+                { id: 'OPS-1003', password: '1234', rollNo: '9A-01', name: 'Hamza Malik', className: 'Class 9-A', parentName: 'Malik Imran', parentContact: '0302-9876543', monthlyFee: 4000, feeDueDate: '2026-11-15', feeStatus: 'Paid', attendancePct: 94, attendanceToday: 'Present', marks: { Mathematics: 89, Physics: 86, English: 85, Urdu: 90, 'Computer Science': 91 }, progressRemark: 'Hardworking and disciplined student in Class 9-A.' },
+                { id: 'OPS-1006', password: '1234', rollNo: '9A-02', name: 'Bilal Mahmood', className: 'Class 9-A', parentName: 'Mahmood Akhtar', parentContact: '0312-6655443', monthlyFee: 4000, feeDueDate: '2026-11-15', feeStatus: 'Pending', attendancePct: 87, attendanceToday: 'Late', marks: { Mathematics: 75, Physics: 73, English: 80, Urdu: 82, 'Computer Science': 84 }, progressRemark: 'Good participation in practical labs; can achieve A+ with regular revision.' },
+                { id: 'OPS-1004', password: '1234', rollNo: '8A-01', name: 'Zainab Fatima', className: 'Class 8-A', parentName: 'Noor-ul-Amin', parentContact: '0345-8899001', monthlyFee: 3500, feeDueDate: '2026-11-15', feeStatus: 'Paid', attendancePct: 98, attendanceToday: 'Present', marks: { Mathematics: 93, Physics: 90, English: 94, Urdu: 92, 'Computer Science': 95 }, progressRemark: 'Outstanding academic achievement and leadership in Class 8-A.' },
+                { id: 'OPS-1007', password: '1234', rollNo: '8A-02', name: 'Daniyal Qureshi', className: 'Class 8-A', parentName: 'Asif Qureshi', parentContact: '0300-7711992', monthlyFee: 3500, feeDueDate: '2026-11-15', feeStatus: 'Unpaid', attendancePct: 84, attendanceToday: 'Present', marks: { Mathematics: 70, Physics: 69, English: 77, Urdu: 75, 'Computer Science': 81 }, progressRemark: 'Shows keen interest in Computer Science; needs extra practice in Mathematics.' }
+            ],
+            timetable: [
+                { id: 'TT-1', className: 'Class 10-A', day: 'Monday', time: '08:30 - 09:15', subject: 'Mathematics', teacherId: 'TCH-101' },
+                { id: 'TT-2', className: 'Class 10-A', day: 'Monday', time: '09:15 - 10:00', subject: 'Physics', teacherId: 'TCH-102' },
+                { id: 'TT-3', className: 'Class 10-A', day: 'Tuesday', time: '08:30 - 09:15', subject: 'English', teacherId: 'TCH-103' },
+                { id: 'TT-4', className: 'Class 10-A', day: 'Wednesday', time: '10:15 - 11:00', subject: 'Computer Science', teacherId: 'TCH-105' },
+                { id: 'TT-5', className: 'Class 10-A', day: 'Thursday', time: '09:15 - 10:00', subject: 'Urdu & Islamiat', teacherId: 'TCH-104' },
+                { id: 'TT-6', className: 'Class 9-A', day: 'Monday', time: '09:15 - 10:00', subject: 'Mathematics', teacherId: 'TCH-101' },
+                { id: 'TT-7', className: 'Class 9-A', day: 'Tuesday', time: '08:30 - 09:15', subject: 'Physics', teacherId: 'TCH-102' },
+                { id: 'TT-8', className: 'Class 9-A', day: 'Wednesday', time: '09:15 - 10:00', subject: 'Urdu & Islamiat', teacherId: 'TCH-104' },
+                { id: 'TT-9', className: 'Class 8-A', day: 'Monday', time: '08:30 - 09:15', subject: 'English', teacherId: 'TCH-103' },
+                { id: 'TT-10', className: 'Class 8-A', day: 'Tuesday', time: '10:15 - 11:00', subject: 'Computer Science', teacherId: 'TCH-105' }
+            ],
+            exams: [
+                { id: 'EX-1', title: 'Mid-Term Examination 2026', className: 'Class 10-A', subject: 'Mathematics', date: '2026-11-24', time: '09:00 AM', totalMarks: 100 },
+                { id: 'EX-2', title: 'Mid-Term Examination 2026', className: 'Class 10-A', subject: 'Physics', date: '2026-11-26', time: '09:00 AM', totalMarks: 100 },
+                { id: 'EX-3', title: 'Mid-Term Examination 2026', className: 'Class 9-A', subject: 'English', date: '2026-11-25', time: '09:00 AM', totalMarks: 100 },
+                { id: 'EX-4', title: 'Monthly Assessment', className: 'Class 8-A', subject: 'Computer Science', date: '2026-11-28', time: '10:00 AM', totalMarks: 50 }
+            ],
+            testUpdates: [
+                { id: 'TU-1', className: 'Class 10-A', subject: 'Mathematics', teacherName: 'Sir Kamran Ahmed', title: 'Chapter 4 Quadratic Equations Test', dueDate: '2026-11-18', details: 'Prepare Exercises 4.1 to 4.4 thoroughly. Calculators allowed.' },
+                { id: 'TU-2', className: 'Class 10-A', subject: 'Physics', teacherName: 'Madam Ayesha Tariq', title: 'Lab Practical & Viva: Optics', dueDate: '2026-11-20', details: 'Bring completed practical notebooks for signature.' },
+                { id: 'TU-3', className: 'Class 9-A', subject: 'Mathematics', teacherName: 'Sir Kamran Ahmed', title: 'Logarithms Quiz', dueDate: '2026-11-19', details: 'Short 25-mark quiz during first period.' }
+            ],
+            notices: [
+                { id: 'NOT-1', title: 'Winter Timing & Uniform Notice', category: 'Holiday / Schedule', date: '2026-11-12', author: 'Principal Iftikhar Hussain', body: 'School timings from Monday will be 08:30 AM to 01:45 PM. All students must wear proper winter uniform.' },
+                { id: 'NOT-2', title: 'Parent-Teacher Meeting (PTM)', category: 'Academic', date: '2026-11-10', author: 'Admin Office', body: 'PTM for Classes 8, 9, and 10 will be held this Saturday from 09:00 AM to 12:30 PM.' }
+            ],
+            leaveRequests: [
+                { id: 'LV-1', applicantId: 'TCH-103', applicantName: 'Sir Usman Ghani', applicantRole: 'Teacher', classInfo: 'English Faculty', date: '2026-11-16', endDate: '2026-11-17', reason: 'Attending family wedding in Islamabad.', status: 'Pending' },
+                { id: 'LV-2', applicantId: 'OPS-1002', applicantName: 'Sara Khan', applicantRole: 'Student', classInfo: 'Class 10-A (Roll 10A-02)', date: '2026-11-14', endDate: '2026-11-14', reason: 'Mild fever and doctor checkup.', status: 'Approved' }
+            ]
+        };
+
+        let state = loadState();
+        let currentSession = loadSession(); // { role, userId } or null
+        let selectedLoginRole = 'principal';
+        let activeTab = 'dashboard';
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (!saved) {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_STATE));
+                    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+                }
+                return JSON.parse(saved);
+            } catch (e) {
+                return JSON.parse(JSON.stringify(DEFAULT_STATE));
+            }
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+            } catch (e) {
+                showToast('Error saving data locally.', 'error');
+            }
+        }
+
+        function loadSession() {
+            try {
+                const raw = localStorage.getItem(SESSION_KEY) || sessionStorage.getItem(SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveSession(sessionObj, remember) {
+            currentSession = sessionObj;
+            localStorage.removeItem(SESSION_KEY);
+            sessionStorage.removeItem(SESSION_KEY);
+            if (sessionObj) {
+                const storage = remember ? localStorage : sessionStorage;
+                storage.setItem(SESSION_KEY, JSON.stringify(sessionObj));
+            }
+        }
+
+        // =========================================================================
+        // 2. AUTHENTICATION & LOGIN GATE LOGIC
+        // =========================================================================
+        function selectLoginRole(role) {
+            selectedLoginRole = role;
+            document.getElementById('loginErrorBanner').classList.add('hidden');
+
+            document.querySelectorAll('.login-role-tab').forEach(btn => {
+                const active = btn.getAttribute('data-login-role') === role;
+                btn.className = active
+                    ? 'login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all bg-brand-600 text-white shadow-sm'
+                    : 'login-role-tab py-2.5 px-3 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all text-slate-600 hover:text-slate-900';
+            });
+
+            const labels = {
+                principal: { lbl: 'Principal User ID', ph: 'e.g., principal', btn: 'Sign In as Principal' },
+                admin: { lbl: 'Admin Office ID', ph: 'e.g., admin', btn: 'Sign In as Admin' },
+                teacher: { lbl: 'Teacher ID', ph: 'e.g., TCH-101', btn: 'Sign In as Teacher' },
+                student: { lbl: 'Student ID', ph: 'e.g., OPS-1001', btn: 'Sign In as Student' }
+            };
+            document.getElementById('loginIdLabel').textContent = labels[role].lbl;
+            document.getElementById('loginUserId').placeholder = labels[role].ph;
+            document.getElementById('loginSubmitBtnText').textContent = labels[role].btn;
+            lucide.createIcons();
+        }
+
+        function quickFillLogin(role, id, pass) {
+            selectLoginRole(role);
+            document.getElementById('loginUserId').value = id;
+            document.getElementById('loginPassword').value = pass;
+            document.getElementById('loginErrorBanner').classList.add('hidden');
+            showToast(`Autofilled ${role.toUpperCase()} credentials (${id})`);
+        }
+
+        function togglePasswordVisibility() {
+            const inp = document.getElementById('loginPassword');
+            const icon = document.getElementById('passwordEyeIcon');
+            if (inp.type === 'password') {
+                inp.type = 'text';
+                icon.setAttribute('data-lucide', 'eye-off');
+            } else {
+                inp.type = 'password';
+                icon.setAttribute('data-lucide', 'eye');
+            }
+            lucide.createIcons();
+        }
+
+        function handleLoginSubmit(e) {
+            e.preventDefault();
+            const rawId = document.getElementById('loginUserId').value.trim();
+            const pass = document.getElementById('loginPassword').value.trim();
+            const remember = document.getElementById('rememberSession').checked;
+            const errBox = document.getElementById('loginErrorBanner');
+            const errText = document.getElementById('loginErrorText');
+
+            let authenticatedUser = null;
+
+            if (selectedLoginRole === 'principal') {
+                if (rawId.toLowerCase() === state.principalAccount.id.toLowerCase() && pass === state.principalAccount.password) {
+                    authenticatedUser = { role: 'principal', userId: state.principalAccount.id };
+                }
+            } else if (selectedLoginRole === 'admin') {
+                if (rawId.toLowerCase() === state.adminAccount.id.toLowerCase() && pass === state.adminAccount.password) {
+                    authenticatedUser = { role: 'admin', userId: state.adminAccount.id };
+                }
+            } else if (selectedLoginRole === 'teacher') {
+                const teacher = state.teachers.find(t => t.id.toLowerCase() === rawId.toLowerCase() && t.password === pass);
+                if (teacher) authenticatedUser = { role: 'teacher', userId: teacher.id };
+            } else if (selectedLoginRole === 'student') {
+                const student = state.students.find(s => s.id.toLowerCase() === rawId.toLowerCase() && s.password === pass);
+                if (student) authenticatedUser = { role: 'student', userId: student.id };
+            }
+
+            if (!authenticatedUser) {
+                errText.textContent = `Invalid ${selectedLoginRole.toUpperCase()} ID or Password. Check credentials or click a Quick Demo card.`;
+                errBox.classList.remove('hidden');
+                return;
+            }
+
+            errBox.classList.add('hidden');
+            saveSession(authenticatedUser, remember);
+            activeTab = ROLE_MENUS[authenticatedUser.role][0].id;
+            renderApp();
+            showToast(`Signed in successfully as ${authenticatedUser.role.toUpperCase()}!`);
+        }
+
+        function logoutUser() {
+            saveSession(null, false);
+            document.getElementById('loginPassword').value = '';
+            renderApp();
+            showToast('You have been logged out safely.');
+        }
+
+        function showAllDemoCredentialsModal() {
+            openModal(`
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-900">Oriental Public School — Directory of Login IDs</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <div class="mt-4 space-y-4 text-xs">
+                    <div>
+                        <p class="font-bold text-emerald-700 uppercase mb-1">Principal & Admin Office</p>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1 font-mono">
+                            <p>Principal: <strong>principal</strong> / Pass: <strong>${state.principalAccount.password}</strong> (Iftikhar Hussain)</p>
+                            <p>Admin: <strong>admin</strong> / Pass: <strong>${state.adminAccount.password}</strong> (Office Admin)</p>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-amber-700 uppercase mb-1">Faculty / Teachers</p>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1 font-mono max-h-36 overflow-y-auto">
+                            ${state.teachers.map(t => `<p>${t.id} / Pass: <strong>${t.password}</strong> — ${t.name} (${t.subject})</p>`).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-purple-700 uppercase mb-1">Enrolled Students</p>
+                        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1 font-mono max-h-40 overflow-y-auto">
+                            ${state.students.map(s => `<p>${s.id} / Pass: <strong>${s.password}</strong> — ${s.name} (${s.className})</p>`).join('')}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-5 flex justify-end">
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold">Done</button>
+                </div>
+            `);
+        }
+
+        // =========================================================================
+        // 3. ROLE NAVIGATION MENUS
+        // =========================================================================
+        const ROLE_MENUS = {
+            principal: [
+                { id: 'dashboard', label: 'Executive Dashboard', icon: 'layout-dashboard' },
+                { id: 'attendance_overview', label: 'Teacher & Student Attendance', icon: 'clipboard-check' },
+                { id: 'notices', label: 'School Notices', icon: 'megaphone' },
+                { id: 'exams_progress', label: 'Exams & Class Progress', icon: 'trending-up' },
+                { id: 'finance_overview', label: 'Fee & Salary Overview', icon: 'banknote' },
+                { id: 'timetable_master', label: 'Master Timetable', icon: 'calendar-days' },
+                { id: 'credentials_directory', label: 'User Credentials Directory', icon: 'key-round' },
+                { id: 'admin_override', label: 'Full Admin & Teacher Control', icon: 'sliders-horizontal' }
+            ],
+            admin: [
+                { id: 'admissions', label: 'Student Admissions', icon: 'user-plus' },
+                { id: 'staff_hire', label: 'Hire & Manage Teachers', icon: 'briefcase' },
+                { id: 'timetable_builder', label: 'Arrange Timetable', icon: 'table' },
+                { id: 'fee_management', label: 'Student Fee Management', icon: 'receipt' },
+                { id: 'payroll', label: 'Teacher Salaries (Payroll)', icon: 'wallet' },
+                { id: 'exam_scheduler', label: 'Arrange Exams', icon: 'file-spreadsheet' },
+                { id: 'teacher_attendance', label: 'Mark Teacher Attendance', icon: 'user-check' },
+                { id: 'notices_leaves', label: 'Notices & Leave Approvals', icon: 'mail-check' },
+                { id: 'class_progress', label: 'Class Progress Rates', icon: 'bar-chart-3' },
+                { id: 'credentials_directory', label: 'User Credentials Directory', icon: 'key-round' }
+            ],
+            teacher: [
+                { id: 't_attendance', label: 'Mark Student Attendance', icon: 'calendar-check' },
+                { id: 't_marks', label: 'Marks & Progress Reports', icon: 'award' },
+                { id: 't_tests', label: 'Assign Test / Homework', icon: 'book-open' },
+                { id: 't_leave', label: 'Request Leave', icon: 'calendar-off' },
+                { id: 't_salary', label: 'My Salary & Slip', icon: 'wallet' }
+            ],
+            student: [
+                { id: 's_overview', label: 'My Attendance & Grades', icon: 'graduation-cap' },
+                { id: 's_timetable', label: 'My Class Timetable', icon: 'calendar-days' },
+                { id: 's_teachers', label: 'My Class Teachers', icon: 'users-round' },
+                { id: 's_classmates', label: 'My Classmates Only', icon: 'users' },
+                { id: 's_fees', label: 'My Fee Status & Voucher', icon: 'receipt' },
+                { id: 's_notices', label: 'Notices & Test Updates', icon: 'bell' },
+                { id: 's_leave', label: 'Request Leave', icon: 'file-signature' }
+            ]
+        };
+
+        function switchTab(tabId) {
+            activeTab = tabId;
+            if (window.innerWidth < 1024) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('sidebarBackdrop').classList.add('hidden');
+            }
+            renderApp();
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('-translate-x-full');
+            document.getElementById('sidebarBackdrop').classList.toggle('hidden');
+        }
+
+        // =========================================================================
+        // 4. UI HELPERS, MODALS & TOASTS
+        // =========================================================================
+        function showToast(msg, type = 'success') {
+            const c = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            const style = type === 'success' ? 'bg-slate-900 text-white border-slate-700' : 'bg-rose-600 text-white border-rose-500';
+            t.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-xl border shadow-xl text-xs sm:text-sm font-medium transition-all duration-300 translate-y-2 opacity-0 ${style}`;
+            t.innerHTML = `<i data-lucide="${type === 'success' ? 'check-circle-2' : 'alert-circle'}" class="w-4 h-4 ${type === 'success' ? 'text-emerald-400' : 'text-white'}"></i><span>${msg}</span>`;
+            c.appendChild(t);
+            lucide.createIcons();
+            requestAnimationFrame(() => t.classList.remove('translate-y-2', 'opacity-0'));
+            setTimeout(() => {
+                t.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => t.remove(), 300);
+            }, 3000);
+        }
+
+        function openModal(htmlContent, maxWidth = 'max-w-lg') {
+            const box = document.getElementById('appModalBox');
+            box.className = `bg-white rounded-2xl ${maxWidth} w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto`;
+            box.innerHTML = htmlContent;
+            const m = document.getElementById('appModal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+            lucide.createIcons();
+        }
+
+        function closeModal() {
+            const m = document.getElementById('appModal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function confirmResetData() {
+            openModal(`
+                <div class="text-center">
+                    <div class="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="rotate-ccw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Reset Oriental Public School Data?</h3>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1.5">This restores default students, teachers, login credentials, timetables, exams, fees, and salaries.</p>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-semibold">Cancel</button>
+                        <button onclick="executeReset()" class="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold">Reset Now</button>
+                    </div>
+                </div>
+            `, 'max-w-sm');
+        }
+
+        function executeReset() {
+            state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+            saveState();
+            closeModal();
+            renderApp();
+            showToast('School demo data restored.');
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                Paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                Approved: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                Present: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+                Pending: 'bg-amber-50 text-amber-700 border-amber-200',
+                Late: 'bg-amber-50 text-amber-700 border-amber-200',
+                Unpaid: 'bg-rose-50 text-rose-700 border-rose-200',
+                Rejected: 'bg-rose-50 text-rose-700 border-rose-200',
+                Absent: 'bg-rose-50 text-rose-700 border-rose-200',
+                'On Leave': 'bg-sky-50 text-sky-700 border-sky-200'
+            };
+            const cls = map[status] || 'bg-slate-100 text-slate-700 border-slate-200';
+            return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${cls}">${status}</span>`;
+        }
+
+        function getGradeLetter(pct) {
+            if (pct >= 90) return { g: 'A+', c: 'text-emerald-700 bg-emerald-50' };
+            if (pct >= 80) return { g: 'A', c: 'text-teal-700 bg-teal-50' };
+            if (pct >= 70) return { g: 'B', c: 'text-sky-700 bg-sky-50' };
+            if (pct >= 60) return { g: 'C', c: 'text-amber-700 bg-amber-50' };
+            return { g: 'F', c: 'text-rose-700 bg-rose-50' };
+        }
+
+        function calcStudentAvg(s) {
+            const vals = Object.values(s.marks || {});
+            if (!vals.length) return 0;
+            return Math.round(vals.reduce((a, b) => a + Number(b), 0) / vals.length);
+        }
+
+        // =========================================================================
+        // 5. MAIN SHELL RENDERER (GATED BY currentSession)
+        // =========================================================================
+        function renderApp() {
+            const loginScreen = document.getElementById('loginScreen');
+            const authApp = document.getElementById('authenticatedApp');
+
+            if (!currentSession) {
+                loginScreen.classList.remove('hidden');
+                authApp.classList.add('hidden');
+                lucide.createIcons();
+                return;
+            }
+
+            // Verify user still exists in state
+            const role = currentSession.role;
+            if (role === 'teacher' && !state.teachers.some(t => t.id === currentSession.userId)) {
+                logoutUser();
+                return;
+            }
+            if (role === 'student' && !state.students.some(s => s.id === currentSession.userId)) {
+                logoutUser();
+                return;
+            }
+
+            loginScreen.classList.add('hidden');
+            authApp.classList.remove('hidden');
+
+            // Update Sidebar & Header Identity Badges
+            const roleBadge = document.getElementById('sidebarRoleBadge');
+            const userName = document.getElementById('sidebarUserName');
+            const userSub = document.getElementById('sidebarUserSub');
+            const headerBadge = document.getElementById('headerAccountBadge');
+
+            if (role === 'principal') {
+                roleBadge.textContent = 'Principal';
+                roleBadge.className = 'px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300';
+                userName.textContent = 'Iftikhar Hussain';
+                userSub.textContent = 'ID: principal • Full Access';
+                headerBadge.textContent = 'Iftikhar Hussain (Principal)';
+            } else if (role === 'admin') {
+                roleBadge.textContent = 'Admin Office';
+                roleBadge.className = 'px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300';
+                userName.textContent = 'Office Admin Desk';
+                userSub.textContent = 'ID: admin • Operations';
+                headerBadge.textContent = 'Office Admin Desk';
+            } else if (role === 'teacher') {
+                const t = getCurrentTeacher();
+                roleBadge.textContent = 'Teacher';
+                roleBadge.className = 'px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300';
+                userName.textContent = t.name;
+                userSub.textContent = `${t.id} • ${t.subject}`;
+                headerBadge.textContent = `${t.name} (${t.id})`;
+            } else if (role === 'student') {
+                const s = getCurrentStudent();
+                roleBadge.textContent = 'Student';
+                roleBadge.className = 'px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300';
+                userName.textContent = s.name;
+                userSub.textContent = `${s.id} • ${s.className}`;
+                headerBadge.textContent = `${s.name} (${s.className})`;
+            }
+
+            // Render Sidebar Menu Items
+            const menuItems = ROLE_MENUS[role];
+            if (!menuItems.some(m => m.id === activeTab)) {
+                activeTab = menuItems[0].id;
+            }
+            const nav = document.getElementById('sidebarNav');
+            nav.innerHTML = menuItems.map(item => {
+                const active = item.id === activeTab;
+                return `
+                    <button onclick="switchTab('${item.id}')" class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-medium transition-all ${active ? 'bg-brand-600 text-white shadow-md shadow-brand-600/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/70'}">
+                        <i data-lucide="${item.icon}" class="w-4 h-4 shrink-0"></i>
+                        <span class="truncate">${item.label}</span>
+                    </button>
+                `;
+            }).join('');
+
+            // Update Header Title
+            const currentMenu = menuItems.find(m => m.id === activeTab) || menuItems[0];
+            document.getElementById('headerPageTitle').textContent = currentMenu.label;
+            document.getElementById('headerPageSubtitle').textContent = `Oriental Public School • Principal Iftikhar Hussain • ${TODAY_DATE}`;
+
+            // Render Active View Content
+            document.getElementById('mainContent').innerHTML = renderViewContent(role, activeTab);
+            lucide.createIcons();
+        }
+
+        // =========================================================================
+        // 6. VIEW ROUTER
+        // =========================================================================
+        function renderViewContent(role, tab) {
+            if (role === 'principal') {
+                switch (tab) {
+                    case 'dashboard': return renderPrincipalDashboard();
+                    case 'attendance_overview': return renderPrincipalAttendance();
+                    case 'notices': return renderNoticesManager(true);
+                    case 'exams_progress': return renderPrincipalExamsAndProgress();
+                    case 'finance_overview': return renderPrincipalFinance();
+                    case 'timetable_master': return renderMasterTimetable();
+                    case 'credentials_directory': return renderCredentialsDirectory();
+                    case 'admin_override': return renderPrincipalOverrideHub();
+                }
+            }
+            if (role === 'admin') {
+                switch (tab) {
+                    case 'admissions': return renderAdminAdmissions();
+                    case 'staff_hire': return renderAdminStaffHire();
+                    case 'timetable_builder': return renderAdminTimetableBuilder();
+                    case 'fee_management': return renderAdminFeeManagement();
+                    case 'payroll': return renderAdminPayroll();
+                    case 'exam_scheduler': return renderAdminExamScheduler();
+                    case 'teacher_attendance': return renderAdminTeacherAttendance();
+                    case 'notices_leaves': return renderAdminNoticesAndLeaves();
+                    case 'class_progress': return renderClassProgressRates();
+                    case 'credentials_directory': return renderCredentialsDirectory();
+                }
+            }
+            if (role === 'teacher') {
+                switch (tab) {
+                    case 't_attendance': return renderTeacherStudentAttendance();
+                    case 't_marks': return renderTeacherMarksAndReports();
+                    case 't_tests': return renderTeacherAssignTests();
+                    case 't_leave': return renderTeacherLeaveRequest();
+                    case 't_salary': return renderTeacherSalaryView();
+                }
+            }
+            if (role === 'student') {
+                switch (tab) {
+                    case 's_overview': return renderStudentOverview();
+                    case 's_timetable': return renderStudentTimetable();
+                    case 's_teachers': return renderStudentTeachers();
+                    case 's_classmates': return renderStudentClassmates();
+                    case 's_fees': return renderStudentFeeView();
+                    case 's_notices': return renderStudentNoticesAndTests();
+                    case 's_leave': return renderStudentLeaveRequest();
+                }
+            }
+            return '';
+        }
+
+        // =========================================================================
+        // 7. PRINCIPAL PORTAL MODULES
+        // =========================================================================
+        function renderPrincipalDashboard() {
+            const totalTeachers = state.teachers.length;
+            const totalClasses = state.classes.length;
+            const totalStudents = state.students.length;
+
+            const presentStudents = state.students.filter(s => s.attendanceToday === 'Present').length;
+            const studentAttPct = totalStudents ? Math.round((presentStudents / totalStudents) * 100) : 0;
+
+            const presentTeachers = state.teachers.filter(t => t.attendanceToday === 'Present').length;
+            const teacherAttPct = totalTeachers ? Math.round((presentTeachers / totalTeachers) * 100) : 0;
+
+            const feeCollected = state.students.filter(s => s.feeStatus === 'Paid').reduce((a, b) => a + Number(b.monthlyFee), 0);
+            const feePending = state.students.filter(s => s.feeStatus !== 'Paid').reduce((a, b) => a + Number(b.monthlyFee), 0);
+
+            const totalPayroll = state.teachers.reduce((a, b) => a + Number(b.salary) + Number(b.bonus || 0), 0);
+            const pendingLeaves = state.leaveRequests.filter(l => l.status === 'Pending').length;
+
+            return `
+                <div class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-semibold">Principal Office • Full Executive Authority</span>
+                        <h2 class="text-2xl font-bold mt-2">Welcome, Principal Iftikhar Hussain</h2>
+                        <p class="text-slate-300 text-xs sm:text-sm mt-1">Oriental Public School — Live Campus Overview, Attendance, Finance & Academic Progress</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="switchTab('notices')" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold shadow-sm transition-colors flex items-center gap-1.5">
+                            <i data-lucide="megaphone" class="w-4 h-4"></i> Publish Notice
+                        </button>
+                        <button onclick="switchTab('admin_override')" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-colors flex items-center gap-1.5">
+                            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Admin Controls
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Students</p>
+                                <h3 class="text-3xl font-extrabold text-slate-900 mt-1">${totalStudents}</h3>
+                                <p class="text-xs text-emerald-600 font-medium mt-1">Across ${totalClasses} Active Classes</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><i data-lucide="graduation-cap" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Teachers & Classes</p>
+                                <h3 class="text-3xl font-extrabold text-slate-900 mt-1">${totalTeachers} <span class="text-base font-medium text-slate-400">Faculty</span></h3>
+                                <p class="text-xs text-sky-600 font-medium mt-1">${totalClasses} Classes (${state.classes.join(', ')})</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center"><i data-lucide="users" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Today's Attendance</p>
+                                <h3 class="text-2xl font-extrabold text-slate-900 mt-1">Students: ${studentAttPct}%</h3>
+                                <p class="text-xs text-indigo-600 font-medium mt-1">Teachers Present: ${presentTeachers}/${totalTeachers} (${teacherAttPct}%)</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center"><i data-lucide="user-check" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Fee Collected vs Pending</p>
+                                <h3 class="text-2xl font-extrabold text-emerald-700 mt-1">PKR ${feeCollected.toLocaleString()}</h3>
+                                <p class="text-xs text-rose-600 font-medium mt-1">Pending / Unpaid: PKR ${feePending.toLocaleString()}</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center"><i data-lucide="banknote" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Monthly Staff Payroll</p>
+                                <h3 class="text-2xl font-extrabold text-slate-900 mt-1">PKR ${totalPayroll.toLocaleString()}</h3>
+                                <p class="text-xs text-slate-500 font-medium mt-1">${state.teachers.filter(t => t.salaryStatus === 'Paid').length} of ${totalTeachers} salaries paid</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center"><i data-lucide="wallet" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Exams & Leave Requests</p>
+                                <h3 class="text-2xl font-extrabold text-slate-900 mt-1">${state.exams.length} <span class="text-sm font-normal text-slate-500">Scheduled Exams</span></h3>
+                                <p class="text-xs text-amber-600 font-medium mt-1">${pendingLeaves} Leave Applications Pending</p>
+                            </div>
+                            <div class="w-11 h-11 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center"><i data-lucide="bell" class="w-5 h-5"></i></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-900">Class-wise Progress Overview</h3>
+                            <button onclick="switchTab('exams_progress')" class="text-xs font-semibold text-brand-600 hover:underline">Full Report →</button>
+                        </div>
+                        <div class="space-y-4">
+                            ${state.classes.map(cls => {
+                                const list = state.students.filter(s => s.className === cls);
+                                const avgScore = list.length ? Math.round(list.reduce((a, s) => a + calcStudentAvg(s), 0) / list.length) : 0;
+                                const avgAtt = list.length ? Math.round(list.reduce((a, s) => a + s.attendancePct, 0) / list.length) : 0;
+                                return `
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                                        <div class="flex justify-between text-xs font-bold mb-1.5">
+                                            <span>${cls} (${list.length} Students)</span>
+                                            <span class="text-brand-700">Academic Avg: ${avgScore}% • Att: ${avgAtt}%</span>
+                                        </div>
+                                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                                            <div class="bg-brand-600 h-2 rounded-full" style="width: ${avgScore}%"></div>
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-slate-900">Recent School Notices</h3>
+                            <button onclick="switchTab('notices')" class="text-xs font-semibold text-brand-600 hover:underline">Manage All →</button>
+                        </div>
+                        <div class="space-y-3">
+                            ${state.notices.slice(0, 3).map(n => `
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <span class="font-bold text-xs text-slate-900">${n.title}</span>
+                                        <span class="text-[10px] px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 font-semibold">${n.category}</span>
+                                    </div>
+                                    <p class="text-xs text-slate-600 mt-1">${n.body}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1.5">Posted by ${n.author} • ${n.date}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPrincipalAttendance() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-5 border-b border-slate-100 flex justify-between items-center">
+                            <div>
+                                <h3 class="font-bold text-slate-900">Teacher Attendance (${TODAY_DATE})</h3>
+                                <p class="text-xs text-slate-500">Faculty punctuality & presence</p>
+                            </div>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr><th class="py-3 px-4">Teacher</th><th class="py-3 px-4">Subject</th><th class="py-3 px-4 text-right">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${state.teachers.map(t => `
+                                        <tr>
+                                            <td class="py-3 px-4 font-semibold text-slate-800">${t.name}</td>
+                                            <td class="py-3 px-4 text-xs text-slate-600">${t.subject}</td>
+                                            <td class="py-3 px-4 text-right">${getStatusBadge(t.attendanceToday)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-5 border-b border-slate-100">
+                            <h3 class="font-bold text-slate-900">Student Attendance (${TODAY_DATE})</h3>
+                            <p class="text-xs text-slate-500">Daily roll call & term percentage</p>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr><th class="py-3 px-4">Student</th><th class="py-3 px-4">Class</th><th class="py-3 px-4">Term %</th><th class="py-3 px-4 text-right">Today</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${state.students.map(s => `
+                                        <tr>
+                                            <td class="py-3 px-4 font-semibold text-slate-800">${s.name}</td>
+                                            <td class="py-3 px-4 text-xs text-slate-600">${s.className}</td>
+                                            <td class="py-3 px-4 text-xs font-bold text-brand-700">${s.attendancePct}%</td>
+                                            <td class="py-3 px-4 text-right">${getStatusBadge(s.attendanceToday)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderNoticesManager(canPublish = true) {
+            return `
+                ${canPublish ? `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Publish New School / Holiday Notice</h3>
+                    <form onsubmit="handlePublishNotice(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                        <input type="text" id="noticeTitle" required placeholder="Notice Title (e.g., Holiday Notice)" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <select id="noticeCategory" class="px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            <option value="General">General Notice</option>
+                            <option value="Holiday / Leave">Holiday / Leave Notice</option>
+                            <option value="Examination">Examination Notice</option>
+                            <option value="Fee Reminder">Fee Reminder</option>
+                        </select>
+                        <input type="text" id="noticeBody" required placeholder="Write detailed notice announcement..." class="md:col-span-2 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <div class="md:col-span-4 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-1.5">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i> Publish Notice
+                            </button>
+                        </div>
+                    </form>
+                </div>` : ''}
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${state.notices.map(n => `
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-brand-50 text-brand-700">${n.category}</span>
+                                    <span class="text-xs text-slate-400">${n.date}</span>
+                                </div>
+                                <h4 class="font-bold text-slate-900 text-base">${n.title}</h4>
+                                <p class="text-sm text-slate-600 mt-1.5 leading-relaxed">${n.body}</p>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-400">
+                                <span>Issued by: <strong class="text-slate-600">${n.author}</strong></span>
+                                ${canPublish ? `<button onclick="deleteNotice('${n.id}')" class="text-rose-500 hover:text-rose-700 font-semibold">Delete</button>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function handlePublishNotice(e) {
+            e.preventDefault();
+            const title = document.getElementById('noticeTitle').value.trim();
+            const category = document.getElementById('noticeCategory').value;
+            const body = document.getElementById('noticeBody').value.trim();
+            const author = currentSession.role === 'principal' ? 'Principal Iftikhar Hussain' : 'Admin Office';
+            state.notices.unshift({ id: 'NOT-' + Date.now(), title, category, body, date: TODAY_DATE, author });
+            saveState();
+            renderApp();
+            showToast('School notice published!');
+        }
+
+        function deleteNotice(id) {
+            state.notices = state.notices.filter(n => n.id !== id);
+            saveState();
+            renderApp();
+            showToast('Notice deleted.');
+        }
+
+        function renderPrincipalExamsAndProgress() {
+            return `
+                ${renderClassProgressRates()}
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden mt-6">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">Scheduled Examinations</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3 px-5">Exam Title</th><th class="py-3 px-5">Class</th><th class="py-3 px-5">Subject</th><th class="py-3 px-5">Date & Time</th><th class="py-3 px-5">Max Marks</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.exams.map(ex => `
+                                    <tr>
+                                        <td class="py-3.5 px-5 font-semibold text-slate-800">${ex.title}</td>
+                                        <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-medium">${ex.className}</span></td>
+                                        <td class="py-3.5 px-5 text-slate-600">${ex.subject}</td>
+                                        <td class="py-3.5 px-5 font-mono text-xs">${ex.date} (${ex.time || '09:00 AM'})</td>
+                                        <td class="py-3.5 px-5 font-bold">${ex.totalMarks}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderPrincipalFinance() {
+            return `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-5 border-b border-slate-100">
+                            <h3 class="font-bold text-slate-900">Student Fee Collection Status</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr><th class="py-3 px-4">Student</th><th class="py-3 px-4">Class</th><th class="py-3 px-4">Fee</th><th class="py-3 px-4 text-right">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${state.students.map(s => `
+                                        <tr>
+                                            <td class="py-3 px-4 font-semibold">${s.name}</td>
+                                            <td class="py-3 px-4 text-xs text-slate-500">${s.className}</td>
+                                            <td class="py-3 px-4 font-bold">PKR ${Number(s.monthlyFee).toLocaleString()}</td>
+                                            <td class="py-3 px-4 text-right">${getStatusBadge(s.feeStatus)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-5 border-b border-slate-100">
+                            <h3 class="font-bold text-slate-900">Faculty Salary Disbursement</h3>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                    <tr><th class="py-3 px-4">Teacher</th><th class="py-3 px-4">Net Salary</th><th class="py-3 px-4 text-right">Status</th></tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                                    ${state.teachers.map(t => `
+                                        <tr>
+                                            <td class="py-3 px-4 font-semibold">${t.name}</td>
+                                            <td class="py-3 px-4 font-bold">PKR ${(Number(t.salary) + Number(t.bonus || 0)).toLocaleString()}</td>
+                                            <td class="py-3 px-4 text-right">${getStatusBadge(t.salaryStatus)}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderMasterTimetable(filterClass = null) {
+            const entries = filterClass ? state.timetable.filter(t => t.className === filterClass) : state.timetable;
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">${filterClass ? `${filterClass} Weekly Timetable` : 'Master School Timetable'}</h3>
+                        <p class="text-xs text-slate-500">Oriental Public School Academic Schedule</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3 px-5">Class</th><th class="py-3 px-5">Day</th><th class="py-3 px-5">Time Slot</th><th class="py-3 px-5">Subject</th><th class="py-3 px-5">Assigned Teacher</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${entries.length ? entries.map(row => {
+                                    const teacher = state.teachers.find(t => t.id === row.teacherId);
+                                    return `
+                                        <tr class="hover:bg-slate-50">
+                                            <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-lg bg-brand-50 text-brand-700 text-xs font-semibold">${row.className}</span></td>
+                                            <td class="py-3.5 px-5 font-semibold text-slate-800">${row.day}</td>
+                                            <td class="py-3.5 px-5 font-mono text-xs text-slate-600">${row.time}</td>
+                                            <td class="py-3.5 px-5 font-medium text-slate-800">${row.subject}</td>
+                                            <td class="py-3.5 px-5 text-xs text-slate-600">${teacher ? teacher.name : 'TBA'}</td>
+                                        </tr>
+                                    `;
+                                }).join('') : `<tr><td colspan="5" class="py-8 text-center text-slate-400">No timetable slots scheduled yet.</td></tr>`}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCredentialsDirectory() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900">Portal Login Credentials Directory</h3>
+                    <p class="text-xs text-slate-500">View or reset passwords for Teachers and Students at Oriental Public School</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 font-bold text-sm text-amber-800 bg-amber-50/40">Teacher Login Credentials</div>
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 uppercase text-slate-500"><tr><th class="p-3.5">Login ID</th><th class="p-3.5">Teacher Name</th><th class="p-3.5">Password</th><th class="p-3.5 text-right">Reset</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.teachers.map(t => `
+                                    <tr>
+                                        <td class="p-3.5 font-mono font-bold text-brand-700">${t.id}</td>
+                                        <td class="p-3.5 font-semibold">${t.name}</td>
+                                        <td class="p-3.5 font-mono">${t.password}</td>
+                                        <td class="p-3.5 text-right"><button onclick="resetUserPassword('teacher', '${t.id}')" class="text-brand-600 hover:underline font-semibold">Reset to 1234</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 font-bold text-sm text-purple-800 bg-purple-50/40">Student Login Credentials</div>
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-50 uppercase text-slate-500"><tr><th class="p-3.5">Login ID</th><th class="p-3.5">Student Name</th><th class="p-3.5">Password</th><th class="p-3.5 text-right">Reset</th></tr></thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.students.map(s => `
+                                    <tr>
+                                        <td class="p-3.5 font-mono font-bold text-purple-700">${s.id}</td>
+                                        <td class="p-3.5 font-semibold">${s.name} (${s.className})</td>
+                                        <td class="p-3.5 font-mono">${s.password}</td>
+                                        <td class="p-3.5 text-right"><button onclick="resetUserPassword('student', '${s.id}')" class="text-brand-600 hover:underline font-semibold">Reset to 1234</button></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function resetUserPassword(type, id) {
+            const list = type === 'teacher' ? state.teachers : state.students;
+            const user = list.find(u => u.id === id);
+            if (user) {
+                user.password = '1234';
+                saveState();
+                renderApp();
+                showToast(`Password for ${user.name} (${user.id}) reset to 1234.`);
+            }
+        }
+
+        function renderPrincipalOverrideHub() {
+            return `
+                <div class="space-y-6">
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl text-xs text-emerald-900 font-medium">
+                        As <strong>Principal Iftikhar Hussain</strong>, you have direct administrative control over Student Admissions, Teacher Hiring, Timetable Builder, Fees, Payroll, and Leave Approvals below.
+                    </div>
+                    ${renderAdminAdmissions()}
+                    ${renderAdminStaffHire()}
+                    ${renderAdminNoticesAndLeaves()}
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // 8. ADMIN PORTAL MODULES (WITH AUTO CREDENTIAL GENERATION)
+        // =========================================================================
+        function renderAdminAdmissions() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Student Admissions & Login Generation</h3>
+                        <p class="text-xs text-slate-500">Admitting a student automatically generates a unique Student Login ID & Password</p>
+                    </div>
+                    <button onclick="openAdmissionModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> New Student Admission
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-5">Login ID / Pass</th><th class="py-3.5 px-5">Roll No</th><th class="py-3.5 px-5">Student Name</th><th class="py-3.5 px-5">Class</th><th class="py-3.5 px-5">Monthly Fee</th><th class="py-3.5 px-5 text-right">Action</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.students.map(s => `
+                                    <tr class="hover:bg-slate-50">
+                                        <td class="py-3.5 px-5 font-mono text-xs"><strong class="text-purple-700">${s.id}</strong> / <span class="text-slate-500">${s.password}</span></td>
+                                        <td class="py-3.5 px-5 font-mono text-xs font-bold text-slate-600">${s.rollNo}</td>
+                                        <td class="py-3.5 px-5 font-semibold text-slate-900">${s.name}</td>
+                                        <td class="py-3.5 px-5"><span class="px-2.5 py-1 rounded-lg bg-slate-100 text-xs font-medium">${s.className}</span></td>
+                                        <td class="py-3.5 px-5 font-bold text-emerald-700">PKR ${Number(s.monthlyFee).toLocaleString()}</td>
+                                        <td class="py-3.5 px-5 text-right space-x-1">
+                                            <button onclick="openAdmissionModal('${s.id}')" class="p-2 text-slate-500 hover:text-brand-600"><i data-lucide="edit-3" class="w-4 h-4"></i></button>
+                                            <button onclick="removeStudent('${s.id}')" class="p-2 text-slate-500 hover:text-rose-600"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function openAdmissionModal(editId = null) {
+            const s = editId ? state.students.find(x => x.id === editId) : null;
+            const autoId = 'OPS-' + (1001 + state.students.length);
+            openModal(`
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-900">${s ? 'Edit Student Record' : 'New Student Admission'}</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form onsubmit="saveStudentAdmission(event, '${editId || ''}')" class="mt-4 space-y-3.5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Student Login ID *</label>
+                            <input type="text" id="admLoginId" required value="${s ? s.id : autoId}" ${s ? 'readonly' : ''} class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Portal Password *</label>
+                            <input type="text" id="admPassword" required value="${s ? s.password : '1234'}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Student Full Name *</label>
+                            <input type="text" id="admName" required value="${s ? s.name : ''}" placeholder="e.g., Usman Tariq" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Roll Number *</label>
+                            <input type="text" id="admRoll" required value="${s ? s.rollNo : '10A-04'}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Class / Section *</label>
+                            <select id="admClass" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                                ${state.classes.map(c => `<option value="${c}" ${s && s.className === c ? 'selected' : ''}>${c}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Fee (PKR) *</label>
+                            <input type="number" id="admFee" required value="${s ? s.monthlyFee : 4500}" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Father / Guardian Name *</label>
+                            <input type="text" id="admParent" required value="${s ? s.parentName : ''}" placeholder="Guardian Name" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Contact Number *</label>
+                            <input type="text" id="admContact" required value="${s ? s.parentContact : ''}" placeholder="0300-1234567" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                    </div>
+                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white">Save & Generate Login</button>
+                    </div>
+                </form>
+            `);
+        }
+
+        function saveStudentAdmission(e, editId) {
+            e.preventDefault();
+            const loginId = document.getElementById('admLoginId').value.trim();
+            const password = document.getElementById('admPassword').value.trim();
+            const payload = {
+                id: loginId,
+                password,
+                name: document.getElementById('admName').value.trim(),
+                rollNo: document.getElementById('admRoll').value.trim(),
+                className: document.getElementById('admClass').value,
+                monthlyFee: Number(document.getElementById('admFee').value),
+                parentName: document.getElementById('admParent').value.trim(),
+                parentContact: document.getElementById('admContact').value.trim()
+            };
+            if (editId) {
+                const idx = state.students.findIndex(x => x.id === editId);
+                if (idx !== -1) state.students[idx] = { ...state.students[idx], ...payload };
+                saveState();
+                closeModal();
+                renderApp();
+                showToast('Student record updated.');
+            } else {
+                state.students.unshift({
+                    ...payload,
+                    feeDueDate: '2026-11-30',
+                    feeStatus: 'Pending',
+                    attendancePct: 100,
+                    attendanceToday: 'Present',
+                    marks: { Mathematics: 80, Physics: 80, English: 80, Urdu: 80, 'Computer Science': 80 },
+                    progressRemark: 'Newly admitted student. Initial performance satisfactory.'
+                });
+                saveState();
+                renderApp();
+                openModal(`
+                    <div class="text-center space-y-3">
+                        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                            <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-900">Student Admitted & Login Created!</h3>
+                        <p class="text-xs text-slate-500">Share these Student Portal login credentials with <strong>${payload.name}</strong>:</p>
+                        <div class="p-4 rounded-xl bg-slate-900 text-white font-mono text-sm space-y-1">
+                            <p>Student ID: <strong class="text-emerald-400">${payload.id}</strong></p>
+                            <p>Password: <strong class="text-emerald-400">${payload.password}</strong></p>
+                            <p class="text-xs text-slate-400">Assigned Class: ${payload.className}</p>
+                        </div>
+                        <button onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold mt-2">Done</button>
+                    </div>
+                `, 'max-w-sm');
+            }
+        }
+
+        function removeStudent(id) {
+            state.students = state.students.filter(s => s.id !== id);
+            saveState();
+            renderApp();
+            showToast('Student removed.');
+        }
+
+        function renderAdminStaffHire() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Faculty Recruitment & Login Generation</h3>
+                        <p class="text-xs text-slate-500">Hire new teachers, generate Teacher Portal ID & Password, and assign classes</p>
+                    </div>
+                    <button onclick="openHireTeacherModal()" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl shadow-sm flex items-center gap-2">
+                        <i data-lucide="user-plus" class="w-4 h-4"></i> Hire New Teacher
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    ${state.teachers.map(t => `
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between items-start">
+                                    <div>
+                                        <span class="font-mono text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">${t.id} • Pass: ${t.password}</span>
+                                        <h4 class="font-bold text-slate-900 mt-1.5">${t.name}</h4>
+                                        <p class="text-xs font-semibold text-brand-600">${t.subject}</p>
+                                    </div>
+                                    ${getStatusBadge(t.attendanceToday)}
+                                </div>
+                                <div class="mt-4 pt-3 border-t border-slate-100 space-y-1.5 text-xs">
+                                    <p><span class="text-slate-400">Assigned Classes:</span> <strong class="text-slate-700">${t.assignedClasses.join(', ')}</strong></p>
+                                    <p><span class="text-slate-400">Monthly Salary:</span> <strong class="text-emerald-700">PKR ${Number(t.salary).toLocaleString()}</strong></p>
+                                    <p><span class="text-slate-400">Contact:</span> <span class="text-slate-600">${t.contact}</span></p>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-3 border-t border-slate-100 flex justify-end">
+                                <button onclick="openAssignClassModal('${t.id}')" class="text-xs font-semibold text-brand-600 hover:text-brand-700">
+                                    Edit Class Assignment
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function openHireTeacherModal() {
+            const autoTchId = 'TCH-' + (101 + state.teachers.length);
+            openModal(`
+                <div class="flex justify-between items-center pb-3 border-b border-slate-100">
+                    <h3 class="font-bold text-lg text-slate-900">Hire New Teacher</h3>
+                    <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+                <form onsubmit="handleHireTeacher(event)" class="mt-4 space-y-3.5">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Teacher Login ID *</label>
+                            <input type="text" id="hireLoginId" required value="${autoTchId}" class="w-full px-3 py-2 bg-slate-100 border border-slate-200 rounded-xl text-sm font-mono font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Portal Password *</label>
+                            <input type="text" id="hirePassword" required value="1234" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Teacher Full Name *</label>
+                        <input type="text" id="hireName" required placeholder="e.g., Sir Zubair Anwar" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Subject Specialty *</label>
+                            <input type="text" id="hireSubject" required placeholder="e.g., Chemistry" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-700 mb-1">Monthly Salary (PKR) *</label>
+                            <input type="number" id="hireSalary" required value="58000" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Assign Classes *</label>
+                        <div class="flex flex-wrap gap-3 pt-1">
+                            ${state.classes.map(c => `
+                                <label class="inline-flex items-center gap-1.5 text-xs font-medium">
+                                    <input type="checkbox" name="hireClasses" value="${c}" checked class="rounded text-brand-600"> ${c}
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Contact *</label>
+                        <input type="text" id="hireContact" required placeholder="0300-1122998" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600">Cancel</button>
+                        <button type="submit" class="px-5 py-2 rounded-xl text-xs font-semibold bg-brand-600 text-white">Hire & Generate Login</button>
+                    </div>
+                </form>
+            `);
+        }
+
+        function handleHireTeacher(e) {
+            e.preventDefault();
+            const checked = [...document.querySelectorAll('input[name="hireClasses"]:checked')].map(el => el.value);
+            const newTeacher = {
+                id: document.getElementById('hireLoginId').value.trim(),
+                password: document.getElementById('hirePassword').value.trim(),
+                name: document.getElementById('hireName').value.trim(),
+                subject: document.getElementById('hireSubject').value.trim(),
+                salary: Number(document.getElementById('hireSalary').value),
+                bonus: 0,
+                salaryStatus: 'Pending',
+                assignedClasses: checked.length ? checked : ['Class 8-A'],
+                contact: document.getElementById('hireContact').value.trim(),
+                attendanceToday: 'Present'
+            };
+            state.teachers.push(newTeacher);
+            saveState();
+            renderApp();
+            openModal(`
+                <div class="text-center space-y-3">
+                    <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                        <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900">Teacher Hired & Login Created!</h3>
+                    <p class="text-xs text-slate-500">Share these Teacher Portal login credentials with <strong>${newTeacher.name}</strong>:</p>
+                    <div class="p-4 rounded-xl bg-slate-900 text-white font-mono text-sm space-y-1">
+                        <p>Teacher ID: <strong class="text-amber-400">${newTeacher.id}</strong></p>
+                        <p>Password: <strong class="text-amber-400">${newTeacher.password}</strong></p>
+                        <p class="text-xs text-slate-400">Subject: ${newTeacher.subject}</p>
+                    </div>
+                    <button onclick="closeModal()" class="w-full py-2.5 rounded-xl bg-brand-600 text-white text-xs font-bold mt-2">Done</button>
+                </div>
+            `, 'max-w-sm');
+        }
+
+        function openAssignClassModal(teacherId) {
+            const t = state.teachers.find(x => x.id === teacherId);
+            if (!t) return;
+            openModal(`
+                <h3 class="font-bold text-lg text-slate-900 mb-3">Assign Classes to ${t.name}</h3>
+                <form onsubmit="saveAssignedClasses(event, '${t.id}')" class="space-y-4">
+                    <div class="space-y-2">
+                        ${state.classes.map(c => `
+                            <label class="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-sm font-medium">
+                                <input type="checkbox" name="editAssignCls" value="${c}" ${t.assignedClasses.includes(c) ? 'checked' : ''}> ${c}
+                            </label>
+                        `).join('')}
+                    </div>
+                    <div class="flex justify-end gap-2 pt-3">
+                        <button type="button" onclick="closeModal()" class="px-4 py-2 text-xs font-semibold text-slate-600">Cancel</button>
+                        <button type="submit" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold">Update Classes</button>
+                    </div>
+                </form>
+            `, 'max-w-sm');
+        }
+
+        function saveAssignedClasses(e, teacherId) {
+            e.preventDefault();
+            const t = state.teachers.find(x => x.id === teacherId);
+            const checked = [...document.querySelectorAll('input[name="editAssignCls"]:checked')].map(el => el.value);
+            if (t && checked.length) {
+                t.assignedClasses = checked;
+                saveState();
+                closeModal();
+                renderApp();
+                showToast('Class assignment updated!');
+            }
+        }
+
+        function renderAdminTimetableBuilder() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Arrange Class Timetable & Assign Teacher</h3>
+                    <form onsubmit="handleAddTimetableSlot(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                        <select id="ttClass" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                        <select id="ttDay" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            <option value="Monday">Monday</option>
+                            <option value="Tuesday">Tuesday</option>
+                            <option value="Wednesday">Wednesday</option>
+                            <option value="Thursday">Thursday</option>
+                            <option value="Friday">Friday</option>
+                            <option value="Saturday">Saturday</option>
+                        </select>
+                        <input type="text" id="ttTime" required value="11:00 - 11:45" placeholder="Time Slot" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="ttSubject" required placeholder="Subject Name" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <select id="ttTeacher" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${state.teachers.map(t => `<option value="${t.id}">${t.name} (${t.subject})</option>`).join('')}
+                        </select>
+                        <div class="sm:col-span-2 lg:col-span-5 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl">Add Timetable Period</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3 px-5">Class</th><th class="py-3 px-5">Day</th><th class="py-3 px-5">Time</th><th class="py-3 px-5">Subject</th><th class="py-3 px-5">Teacher</th><th class="py-3 px-5 text-right">Remove</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.timetable.map(row => {
+                                    const t = state.teachers.find(x => x.id === row.teacherId);
+                                    return `
+                                        <tr>
+                                            <td class="py-3 px-5 font-semibold text-brand-700">${row.className}</td>
+                                            <td class="py-3 px-5">${row.day}</td>
+                                            <td class="py-3 px-5 font-mono text-xs">${row.time}</td>
+                                            <td class="py-3 px-5 font-medium">${row.subject}</td>
+                                            <td class="py-3 px-5 text-xs">${t ? t.name : 'TBA'}</td>
+                                            <td class="py-3 px-5 text-right">
+                                                <button onclick="deleteTimetableSlot('${row.id}')" class="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleAddTimetableSlot(e) {
+            e.preventDefault();
+            state.timetable.push({
+                id: 'TT-' + Date.now(),
+                className: document.getElementById('ttClass').value,
+                day: document.getElementById('ttDay').value,
+                time: document.getElementById('ttTime').value.trim(),
+                subject: document.getElementById('ttSubject').value.trim(),
+                teacherId: document.getElementById('ttTeacher').value
+            });
+            saveState();
+            renderApp();
+            showToast('Timetable period added!');
+        }
+
+        function deleteTimetableSlot(id) {
+            state.timetable = state.timetable.filter(x => x.id !== id);
+            saveState();
+            renderApp();
+            showToast('Timetable period removed.');
+        }
+
+        function renderAdminFeeManagement() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Assign / Update Student Fee</h3>
+                    <form onsubmit="handleUpdateStudentFee(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <select id="feeStudentSelect" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${state.students.map(s => `<option value="${s.id}">${s.name} (${s.className})</option>`).join('')}
+                        </select>
+                        <input type="number" id="feeNewAmount" required value="4500" placeholder="Fee Amount (PKR)" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="date" id="feeNewDue" required value="2026-11-25" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <button type="submit" class="px-4 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold rounded-xl">Assign Fee</button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-5">Roll No</th><th class="py-3.5 px-5">Student Name</th><th class="py-3.5 px-5">Class</th><th class="py-3.5 px-5">Fee Amount</th><th class="py-3.5 px-5">Due Date</th><th class="py-3.5 px-5">Status</th><th class="py-3.5 px-5 text-right">Actions</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.students.map(s => `
+                                    <tr>
+                                        <td class="py-3.5 px-5 font-mono text-xs">${s.rollNo}</td>
+                                        <td class="py-3.5 px-5 font-semibold">${s.name}</td>
+                                        <td class="py-3.5 px-5 text-xs">${s.className}</td>
+                                        <td class="py-3.5 px-5 font-bold">PKR ${Number(s.monthlyFee).toLocaleString()}</td>
+                                        <td class="py-3.5 px-5 text-xs text-slate-500">${s.feeDueDate}</td>
+                                        <td class="py-3.5 px-5">${getStatusBadge(s.feeStatus)}</td>
+                                        <td class="py-3.5 px-5 text-right space-x-2">
+                                            ${s.feeStatus !== 'Paid'
+                                                ? `<button onclick="markFeePaid('${s.id}')" class="px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">Mark Paid</button>`
+                                                : `<button onclick="openFeeVoucherModal('${s.id}')" class="px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Print Receipt</button>`}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleUpdateStudentFee(e) {
+            e.preventDefault();
+            const id = document.getElementById('feeStudentSelect').value;
+            const amt = Number(document.getElementById('feeNewAmount').value);
+            const due = document.getElementById('feeNewDue').value;
+            const s = state.students.find(x => x.id === id);
+            if (s) {
+                s.monthlyFee = amt;
+                s.feeDueDate = due;
+                s.feeStatus = 'Pending';
+                saveState();
+                renderApp();
+                showToast(`Fee of PKR ${amt.toLocaleString()} assigned to ${s.name}.`);
+            }
+        }
+
+        function markFeePaid(studentId) {
+            const s = state.students.find(x => x.id === studentId);
+            if (s) {
+                s.feeStatus = 'Paid';
+                saveState();
+                renderApp();
+                showToast(`Fee marked Paid for ${s.name}!`);
+            }
+        }
+
+        function openFeeVoucherModal(studentId) {
+            const s = state.students.find(x => x.id === studentId);
+            if (!s) return;
+            openModal(`
+                <div id="printableArea" class="border-2 border-slate-800 p-6 rounded-xl">
+                    <div class="text-center border-b-2 border-slate-800 pb-4">
+                        <h2 class="text-xl font-extrabold uppercase tracking-wide text-slate-900">Oriental Public School</h2>
+                        <p class="text-xs text-slate-600">Principal: Iftikhar Hussain • Official Fee Voucher / Receipt</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3 text-xs my-4">
+                        <p><span class="text-slate-500">Student Name:</span> <strong>${s.name}</strong></p>
+                        <p><span class="text-slate-500">Student ID / Roll:</span> <strong>${s.id} (${s.rollNo})</strong></p>
+                        <p><span class="text-slate-500">Class:</span> <strong>${s.className}</strong></p>
+                        <p><span class="text-slate-500">Guardian:</span> <strong>${s.parentName}</strong></p>
+                        <p><span class="text-slate-500">Due Date:</span> <strong>${s.feeDueDate}</strong></p>
+                        <p><span class="text-slate-500">Payment Status:</span> <strong>${s.feeStatus.toUpperCase()}</strong></p>
+                    </div>
+                    <div class="bg-slate-100 p-4 rounded-xl flex justify-between items-center font-bold text-base">
+                        <span>Monthly Tuition Fee</span>
+                        <span>PKR ${Number(s.monthlyFee).toLocaleString()}/-</span>
+                    </div>
+                    <div class="mt-6 pt-4 border-t border-dashed border-slate-400 flex justify-between text-[11px] text-slate-500">
+                        <span>Issued Date: ${TODAY_DATE}</span>
+                        <span>Accounts Officer Signature</span>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4 no-print">
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold">Close</button>
+                    <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold">Print Voucher</button>
+                </div>
+            `);
+        }
+
+        function renderAdminPayroll() {
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">Teacher Salary & Payroll Management</h3>
+                        <p class="text-xs text-slate-500">Add performance bonuses and disburse monthly faculty salaries</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-5">Teacher</th><th class="py-3.5 px-5">Subject</th><th class="py-3.5 px-5">Base Salary</th><th class="py-3.5 px-5">Bonus (PKR)</th><th class="py-3.5 px-5">Net Payable</th><th class="py-3.5 px-5">Status</th><th class="py-3.5 px-5 text-right">Action</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.teachers.map(t => {
+                                    const net = Number(t.salary) + Number(t.bonus || 0);
+                                    return `
+                                        <tr>
+                                            <td class="py-3.5 px-5 font-semibold">${t.name} <span class="text-xs text-slate-400 font-mono">(${t.id})</span></td>
+                                            <td class="py-3.5 px-5 text-xs text-slate-500">${t.subject}</td>
+                                            <td class="py-3.5 px-5">PKR ${Number(t.salary).toLocaleString()}</td>
+                                            <td class="py-3.5 px-5">
+                                                <input type="number" value="${t.bonus || 0}" onchange="updateTeacherBonus('${t.id}', this.value)" class="w-24 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold">
+                                            </td>
+                                            <td class="py-3.5 px-5 font-bold text-slate-900">PKR ${net.toLocaleString()}</td>
+                                            <td class="py-3.5 px-5">${getStatusBadge(t.salaryStatus)}</td>
+                                            <td class="py-3.5 px-5 text-right">
+                                                ${t.salaryStatus !== 'Paid'
+                                                    ? `<button onclick="payTeacherSalary('${t.id}')" class="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold">Pay Salary</button>`
+                                                    : `<span class="text-xs text-emerald-600 font-semibold">Disbursed</span>`}
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateTeacherBonus(teacherId, val) {
+            const t = state.teachers.find(x => x.id === teacherId);
+            if (t) {
+                t.bonus = Math.max(0, Number(val) || 0);
+                saveState();
+                renderApp();
+                showToast(`Bonus updated for ${t.name}.`);
+            }
+        }
+
+        function payTeacherSalary(teacherId) {
+            const t = state.teachers.find(x => x.id === teacherId);
+            if (t) {
+                t.salaryStatus = 'Paid';
+                saveState();
+                renderApp();
+                showToast(`Salary disbursed to ${t.name}!`);
+            }
+        }
+
+        function renderAdminExamScheduler() {
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Arrange New Examination</h3>
+                    <form onsubmit="handleAddExam(event)" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+                        <input type="text" id="exTitle" required placeholder="Exam Name (e.g., Final Term)" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <select id="exClass" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${state.classes.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                        <input type="text" id="exSubject" required placeholder="Subject" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="date" id="exDate" required value="2026-12-05" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="exTime" required value="09:00 AM" placeholder="Time" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="number" id="exMarks" required value="100" placeholder="Total Marks" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <div class="sm:col-span-2 lg:col-span-6 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-xs font-semibold rounded-xl">Schedule Exam</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                            <tr><th class="py-3 px-5">Exam Title</th><th class="py-3 px-5">Class</th><th class="py-3 px-5">Subject</th><th class="py-3 px-5">Date & Time</th><th class="py-3 px-5">Total Marks</th><th class="py-3 px-5 text-right">Action</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${state.exams.map(ex => `
+                                <tr>
+                                    <td class="py-3 px-5 font-semibold">${ex.title}</td>
+                                    <td class="py-3 px-5">${ex.className}</td>
+                                    <td class="py-3 px-5">${ex.subject}</td>
+                                    <td class="py-3 px-5 font-mono text-xs">${ex.date} (${ex.time || '09:00 AM'})</td>
+                                    <td class="py-3 px-5 font-bold">${ex.totalMarks}</td>
+                                    <td class="py-3 px-5 text-right"><button onclick="deleteExam('${ex.id}')" class="text-rose-500 text-xs font-semibold">Remove</button></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function handleAddExam(e) {
+            e.preventDefault();
+            state.exams.unshift({
+                id: 'EX-' + Date.now(),
+                title: document.getElementById('exTitle').value.trim(),
+                className: document.getElementById('exClass').value,
+                subject: document.getElementById('exSubject').value.trim(),
+                date: document.getElementById('exDate').value,
+                time: document.getElementById('exTime').value.trim(),
+                totalMarks: Number(document.getElementById('exMarks').value)
+            });
+            saveState();
+            renderApp();
+            showToast('Exam scheduled successfully!');
+        }
+
+        function deleteExam(id) {
+            state.exams = state.exams.filter(x => x.id !== id);
+            saveState();
+            renderApp();
+            showToast('Exam removed.');
+        }
+
+        function renderAdminTeacherAttendance() {
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">Mark Daily Teacher Attendance (${TODAY_DATE})</h3>
+                        <p class="text-xs text-slate-500">Click status buttons to update faculty attendance</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-5">Teacher Name</th><th class="py-3.5 px-5">Subject</th><th class="py-3.5 px-5 text-right">Mark Attendance</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.teachers.map(t => `
+                                    <tr>
+                                        <td class="py-3.5 px-5 font-semibold">${t.name}</td>
+                                        <td class="py-3.5 px-5 text-xs text-slate-500">${t.subject}</td>
+                                        <td class="py-3.5 px-5 text-right">
+                                            <div class="inline-flex bg-slate-100 p-1 rounded-xl gap-1">
+                                                ${['Present', 'Late', 'Absent', 'On Leave'].map(st => `
+                                                    <button onclick="setTeacherAtt('${t.id}', '${st}')" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all ${t.attendanceToday === st ? 'bg-brand-600 text-white shadow-xs' : 'text-slate-600 hover:bg-slate-200'}">
+                                                        ${st}
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function setTeacherAtt(teacherId, status) {
+            const t = state.teachers.find(x => x.id === teacherId);
+            if (t) {
+                t.attendanceToday = status;
+                saveState();
+                renderApp();
+                showToast(`${t.name} marked ${status}.`);
+            }
+        }
+
+        function renderAdminNoticesAndLeaves() {
+            return `
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">Incoming Leave Applications (Teachers & Students)</h3>
+                        <p class="text-xs text-slate-500">Review, approve, or reject leave requests</p>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-5">Applicant</th><th class="py-3.5 px-5">Role / Info</th><th class="py-3.5 px-5">Leave Date(s)</th><th class="py-3.5 px-5">Reason</th><th class="py-3.5 px-5">Status</th><th class="py-3.5 px-5 text-right">Decision</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${state.leaveRequests.map(lv => `
+                                    <tr>
+                                        <td class="py-3.5 px-5 font-semibold">${lv.applicantName}</td>
+                                        <td class="py-3.5 px-5 text-xs"><span class="font-bold text-brand-700">${lv.applicantRole}</span> • ${lv.classInfo}</td>
+                                        <td class="py-3.5 px-5 font-mono text-xs">${lv.date}${lv.endDate && lv.endDate !== lv.date ? ` to ${lv.endDate}` : ''}</td>
+                                        <td class="py-3.5 px-5 text-xs text-slate-600 max-w-xs">${lv.reason}</td>
+                                        <td class="py-3.5 px-5">${getStatusBadge(lv.status)}</td>
+                                        <td class="py-3.5 px-5 text-right space-x-1">
+                                            <button onclick="decideLeave('${lv.id}', 'Approved')" class="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">Approve</button>
+                                            <button onclick="decideLeave('${lv.id}', 'Rejected')" class="px-2.5 py-1 rounded-lg bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700">Reject</button>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    ${renderNoticesManager(true)}
+                </div>
+            `;
+        }
+
+        function decideLeave(id, decision) {
+            const lv = state.leaveRequests.find(x => x.id === id);
+            if (lv) {
+                lv.status = decision;
+                saveState();
+                renderApp();
+                showToast(`Leave request ${decision.toLowerCase()}.`);
+            }
+        }
+
+        function renderClassProgressRates() {
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                    ${state.classes.map(cls => {
+                        const students = state.students.filter(s => s.className === cls);
+                        const avgScore = students.length ? Math.round(students.reduce((a, s) => a + calcStudentAvg(s), 0) / students.length) : 0;
+                        const avgAtt = students.length ? Math.round(students.reduce((a, s) => a + s.attendancePct, 0) / students.length) : 0;
+                        const overallRate = Math.round((avgScore * 0.7) + (avgAtt * 0.3));
+                        return `
+                            <div class="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                                <div class="flex justify-between items-center mb-3">
+                                    <h4 class="font-bold text-lg text-slate-900">${cls}</h4>
+                                    <span class="px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-bold">${overallRate}% Progress</span>
+                                </div>
+                                <p class="text-xs text-slate-500 mb-4">${students.length} Enrolled Students</p>
+                                <div class="space-y-3 text-xs">
+                                    <div>
+                                        <div class="flex justify-between font-semibold mb-1"><span>Exam Score Average</span><span>${avgScore}%</span></div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-emerald-500 h-2 rounded-full" style="width:${avgScore}%"></div></div>
+                                    </div>
+                                    <div>
+                                        <div class="flex justify-between font-semibold mb-1"><span>Attendance Rate</span><span>${avgAtt}%</span></div>
+                                        <div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-sky-500 h-2 rounded-full" style="width:${avgAtt}%"></div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // 9. TEACHER PORTAL MODULES (LOCKED TO LOGGED-IN TEACHER)
+        // =========================================================================
+        function getCurrentTeacher() {
+            return state.teachers.find(t => t.id === currentSession?.userId) || state.teachers[0];
+        }
+
+        let selectedTeacherClass = null;
+
+        function renderTeacherStudentAttendance() {
+            const t = getCurrentTeacher();
+            if (!selectedTeacherClass || !t.assignedClasses.includes(selectedTeacherClass)) {
+                selectedTeacherClass = t.assignedClasses[0];
+            }
+            const classStudents = state.students.filter(s => s.className === selectedTeacherClass);
+
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Mark Student Attendance (${TODAY_DATE})</h3>
+                        <p class="text-xs text-slate-500">Faculty: <strong>${t.name}</strong> (${t.subject})</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-semibold text-slate-600">Assigned Class:</label>
+                        <select onchange="selectedTeacherClass = this.value; renderApp();" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+                            ${t.assignedClasses.map(c => `<option value="${c}" ${c === selectedTeacherClass ? 'selected' : ''}>${c}</option>`).join('')}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                            <tr><th class="py-3.5 px-5">Roll No</th><th class="py-3.5 px-5">Student Name</th><th class="py-3.5 px-5">Overall %</th><th class="py-3.5 px-5 text-right">Today's Status</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${classStudents.map(s => `
+                                <tr>
+                                    <td class="py-3.5 px-5 font-mono text-xs">${s.rollNo}</td>
+                                    <td class="py-3.5 px-5 font-semibold">${s.name}</td>
+                                    <td class="py-3.5 px-5 text-xs font-bold text-brand-700">${s.attendancePct}%</td>
+                                    <td class="py-3.5 px-5 text-right">
+                                        <div class="inline-flex bg-slate-100 p-1 rounded-xl gap-1">
+                                            ${['Present', 'Late', 'Absent'].map(st => `
+                                                <button onclick="markStudentDailyAtt('${s.id}', '${st}')" class="px-3 py-1 rounded-lg text-xs font-semibold transition-all ${s.attendanceToday === st ? 'bg-brand-600 text-white' : 'text-slate-600 hover:bg-slate-200'}">
+                                                    ${st}
+                                                </button>
+                                            `).join('')}
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function markStudentDailyAtt(studentId, status) {
+            const s = state.students.find(x => x.id === studentId);
+            if (s) {
+                s.attendanceToday = status;
+                if (status === 'Present' && s.attendancePct < 100) s.attendancePct = Math.min(100, s.attendancePct + 1);
+                if (status === 'Absent' && s.attendancePct > 50) s.attendancePct = Math.max(50, s.attendancePct - 1);
+                saveState();
+                renderApp();
+                showToast(`${s.name} marked ${status}.`);
+            }
+        }
+
+        function renderTeacherMarksAndReports() {
+            const t = getCurrentTeacher();
+            if (!selectedTeacherClass || !t.assignedClasses.includes(selectedTeacherClass)) {
+                selectedTeacherClass = t.assignedClasses[0];
+            }
+            const classStudents = state.students.filter(s => s.className === selectedTeacherClass);
+            const subjKey = Object.keys(classStudents[0]?.marks || {}).find(k => t.subject.toLowerCase().includes(k.toLowerCase())) || 'Mathematics';
+
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <h3 class="font-bold text-slate-900">Exam Marks & Student Progress Reports</h3>
+                        <p class="text-xs text-slate-500">Enter <strong>${subjKey}</strong> marks (out of 100) and write progress report remarks</p>
+                    </div>
+                    <select onchange="selectedTeacherClass = this.value; renderApp();" class="px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold">
+                        ${t.assignedClasses.map(c => `<option value="${c}" ${c === selectedTeacherClass ? 'selected' : ''}>${c}</option>`).join('')}
+                    </select>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm">
+                            <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                                <tr><th class="py-3.5 px-4">Student</th><th class="py-3.5 px-4 text-center">${subjKey} Marks</th><th class="py-3.5 px-4 text-center">Overall %</th><th class="py-3.5 px-4">Progress Report Remark</th><th class="py-3.5 px-4 text-right">Report Card</th></tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                ${classStudents.map(s => {
+                                    const avg = calcStudentAvg(s);
+                                    const gl = getGradeLetter(avg);
+                                    const currentMark = s.marks[subjKey] ?? 80;
+                                    return `
+                                        <tr>
+                                            <td class="py-3.5 px-4">
+                                                <p class="font-bold text-slate-900">${s.name}</p>
+                                                <p class="text-[11px] font-mono text-slate-400">${s.rollNo}</p>
+                                            </td>
+                                            <td class="py-3.5 px-4 text-center">
+                                                <input type="number" min="0" max="100" value="${currentMark}" onchange="updateStudentSubjectMark('${s.id}', '${subjKey}', this.value)" class="w-20 text-center py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold">
+                                            </td>
+                                            <td class="py-3.5 px-4 text-center">
+                                                <span class="px-2.5 py-1 rounded-lg text-xs font-bold ${gl.c}">${avg}% (${gl.g})</span>
+                                            </td>
+                                            <td class="py-3.5 px-4">
+                                                <input type="text" value="${s.progressRemark || ''}" onchange="updateStudentRemark('${s.id}', this.value)" placeholder="Write progress report remark..." class="w-full min-w-[220px] px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs">
+                                            </td>
+                                            <td class="py-3.5 px-4 text-right">
+                                                <button onclick="openReportCardModal('${s.id}')" class="px-3 py-1.5 rounded-xl bg-brand-50 text-brand-700 hover:bg-brand-100 text-xs font-semibold">
+                                                    View Card
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+        }
+
+        function updateStudentSubjectMark(studentId, subject, val) {
+            const s = state.students.find(x => x.id === studentId);
+            if (s) {
+                s.marks[subject] = Math.max(0, Math.min(100, Number(val) || 0));
+                saveState();
+                renderApp();
+                showToast(`Updated ${subject} marks for ${s.name}.`);
+            }
+        }
+
+        function updateStudentRemark(studentId, text) {
+            const s = state.students.find(x => x.id === studentId);
+            if (s) {
+                s.progressRemark = text.trim();
+                saveState();
+                showToast(`Progress report saved for ${s.name}.`);
+            }
+        }
+
+        function openReportCardModal(studentId) {
+            const s = state.students.find(x => x.id === studentId);
+            if (!s) return;
+            const avg = calcStudentAvg(s);
+            const gl = getGradeLetter(avg);
+            openModal(`
+                <div id="printableArea" class="border-2 border-slate-800 p-6 rounded-xl">
+                    <div class="text-center border-b-2 border-slate-800 pb-4">
+                        <h2 class="text-xl font-extrabold uppercase text-slate-900">Oriental Public School</h2>
+                        <p class="text-xs text-slate-600">Principal: Iftikhar Hussain • Official Student Progress Report Card</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2 text-xs my-4 bg-slate-50 p-3 rounded-xl">
+                        <p>Student: <strong>${s.name}</strong></p>
+                        <p>Roll No: <strong>${s.rollNo}</strong></p>
+                        <p>Class: <strong>${s.className}</strong></p>
+                        <p>Attendance: <strong>${s.attendancePct}%</strong></p>
+                    </div>
+                    <table class="w-full text-left text-xs border border-slate-200 mb-4">
+                        <thead class="bg-slate-100"><tr><th class="p-2.5 border-b">Subject</th><th class="p-2.5 border-b text-right">Marks Obtained (100)</th></tr></thead>
+                        <tbody>
+                            ${Object.entries(s.marks).map(([sub, mk]) => `
+                                <tr class="border-b"><td class="p-2.5 font-medium">${sub}</td><td class="p-2.5 text-right font-bold">${mk}</td></tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                    <div class="flex justify-between items-center bg-emerald-50 p-3 rounded-xl text-xs font-bold text-emerald-900 mb-3">
+                        <span>Overall Percentage: ${avg}%</span>
+                        <span>Final Grade: ${gl.g}</span>
+                    </div>
+                    <div class="text-xs bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <p class="font-bold text-slate-700 mb-1">Teacher's Progress Remarks:</p>
+                        <p class="text-slate-600 italic">"${s.progressRemark}"</p>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-2 mt-4 no-print">
+                    <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold">Close</button>
+                    <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold">Print Report</button>
+                </div>
+            `);
+        }
+
+        function renderTeacherAssignTests() {
+            const t = getCurrentTeacher();
+            const myTests = state.testUpdates.filter(tu => tu.teacherName === t.name);
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Assign Class Test / Homework Update</h3>
+                    <form onsubmit="handlePostTestUpdate(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <select id="testClass" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                            ${t.assignedClasses.map(c => `<option value="${c}">${c}</option>`).join('')}
+                        </select>
+                        <input type="text" id="testTitle" required placeholder="Test Topic / Homework Title" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="date" id="testDueDate" required value="2026-11-20" class="px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <input type="text" id="testDetails" required placeholder="Syllabus chapters & instructions for students..." class="sm:col-span-3 px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        <div class="sm:col-span-3 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-xs font-semibold rounded-xl">Post Test Update</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    ${myTests.map(tu => `
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div class="flex justify-between items-center mb-2">
+                                <span class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 text-xs font-bold">${tu.className} • ${tu.subject}</span>
+                                <span class="text-xs font-mono text-rose-600 font-semibold">Date: ${tu.dueDate}</span>
+                            </div>
+                            <h4 class="font-bold text-slate-900">${tu.title}</h4>
+                            <p class="text-xs text-slate-600 mt-1.5">${tu.details}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function handlePostTestUpdate(e) {
+            e.preventDefault();
+            const t = getCurrentTeacher();
+            state.testUpdates.unshift({
+                id: 'TU-' + Date.now(),
+                className: document.getElementById('testClass').value,
+                subject: t.subject,
+                teacherName: t.name,
+                title: document.getElementById('testTitle').value.trim(),
+                dueDate: document.getElementById('testDueDate').value,
+                details: document.getElementById('testDetails').value.trim()
+            });
+            saveState();
+            renderApp();
+            showToast('Test update published to students!');
+        }
+
+        function renderTeacherLeaveRequest() {
+            const t = getCurrentTeacher();
+            const myLeaves = state.leaveRequests.filter(l => l.applicantId === t.id);
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Submit Teacher Leave Request (Not Coming Notice)</h3>
+                    <form onsubmit="handleSubmitLeave(event, 'Teacher')" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">From Date</label>
+                            <input type="date" id="lvDate" required value="2026-11-17" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">To Date</label>
+                            <input type="date" id="lvEndDate" required value="2026-11-17" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Reason for Leave</label>
+                            <input type="text" id="lvReason" required placeholder="Explain reason for leave..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div class="sm:col-span-4 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-xs font-semibold rounded-xl">Submit Leave Request</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-bold text-sm">My Leave Request History</div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="py-3 px-5">Date Range</th><th class="py-3 px-5">Reason</th><th class="py-3 px-5 text-right">Status</th></tr></thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${myLeaves.length ? myLeaves.map(l => `
+                                <tr><td class="py-3 px-5 font-mono text-xs">${l.date}${l.endDate && l.endDate !== l.date ? ` to ${l.endDate}` : ''}</td><td class="py-3 px-5 text-xs">${l.reason}</td><td class="py-3 px-5 text-right">${getStatusBadge(l.status)}</td></tr>
+                            `).join('') : `<tr><td colspan="3" class="py-6 text-center text-slate-400 text-xs">No leave requests submitted yet.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderTeacherSalaryView() {
+            const t = getCurrentTeacher();
+            const net = Number(t.salary) + Number(t.bonus || 0);
+            return `
+                <div id="printableArea" class="max-w-xl bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">Oriental Public School • Faculty Salary Slip</span>
+                            <h3 class="text-xl font-bold text-slate-900 mt-1">${t.name}</h3>
+                            <p class="text-xs text-slate-500">${t.id} • ${t.subject} Department</p>
+                        </div>
+                        ${getStatusBadge(t.salaryStatus)}
+                    </div>
+                    <div class="space-y-2.5 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">Basic Monthly Salary:</span><strong>PKR ${Number(t.salary).toLocaleString()}</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Performance / Extra Duty Bonus:</span><strong class="text-emerald-600">+ PKR ${Number(t.bonus || 0).toLocaleString()}</strong></div>
+                        <div class="flex justify-between pt-3 border-t border-slate-100 text-base font-extrabold"><span>Net Salary Payable:</span><span class="text-brand-700">PKR ${net.toLocaleString()}</span></div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-end no-print">
+                        <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold">Print Salary Slip</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // =========================================================================
+        // 10. STUDENT PORTAL MODULES (LOCKED TO LOGGED-IN STUDENT & CLASS PRIVACY)
+        // =========================================================================
+        function getCurrentStudent() {
+            return state.students.find(s => s.id === currentSession?.userId) || state.students[0];
+        }
+
+        function renderStudentOverview() {
+            const s = getCurrentStudent();
+            const avg = calcStudentAvg(s);
+            const gl = getGradeLetter(avg);
+            return `
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <span class="text-xs font-semibold uppercase text-slate-400">My Attendance</span>
+                        <h3 class="text-3xl font-extrabold text-brand-700 mt-1">${s.attendancePct}%</h3>
+                        <p class="text-xs text-slate-500 mt-1">Today's Status: <strong>${s.attendanceToday}</strong></p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                        <span class="text-xs font-semibold uppercase text-slate-400">Overall Exam Percentage</span>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mt-1">${avg}%</h3>
+                        <p class="text-xs text-emerald-600 font-semibold mt-1">Grade Standing: ${gl.g}</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-semibold uppercase text-slate-400">Progress Report</span>
+                            <p class="text-xs text-slate-600 mt-1 italic">"${s.progressRemark}"</p>
+                        </div>
+                        <button onclick="openReportCardModal('${s.id}')" class="mt-3 text-xs font-bold text-brand-600 hover:underline text-left">View Printable Report Card →</button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-5 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-900">My Subject-wise Marks & Grades (${s.className})</h3>
+                    </div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                            <tr><th class="py-3.5 px-5">Subject</th><th class="py-3.5 px-5 text-center">Marks Obtained</th><th class="py-3.5 px-5 text-center">Total Marks</th><th class="py-3.5 px-5 text-right">Grade</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${Object.entries(s.marks).map(([sub, mk]) => {
+                                const subGrade = getGradeLetter(mk);
+                                return `
+                                    <tr>
+                                        <td class="py-3.5 px-5 font-semibold text-slate-800">${sub}</td>
+                                        <td class="py-3.5 px-5 text-center font-bold">${mk}</td>
+                                        <td class="py-3.5 px-5 text-center text-slate-400">100</td>
+                                        <td class="py-3.5 px-5 text-right"><span class="px-2.5 py-1 rounded-lg text-xs font-bold ${subGrade.c}">${subGrade.g}</span></td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderStudentTimetable() {
+            const s = getCurrentStudent();
+            return renderMasterTimetable(s.className);
+        }
+
+        function renderStudentTeachers() {
+            const s = getCurrentStudent();
+            const classTeachers = state.teachers.filter(t => t.assignedClasses.includes(s.className));
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900">Teachers Assigned to ${s.className}</h3>
+                    <p class="text-xs text-slate-500">Your subject instructors at Oriental Public School</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    ${classTeachers.map(t => `
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                            <div class="flex items-center gap-3">
+                                <div class="w-11 h-11 rounded-xl bg-brand-50 text-brand-700 font-bold flex items-center justify-center">
+                                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-900 text-sm">${t.name}</h4>
+                                    <p class="text-xs text-brand-600 font-semibold">${t.subject}</p>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-100">Contact: ${t.contact}</p>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderStudentClassmates() {
+            const s = getCurrentStudent();
+            // STRICT PRIVACY FILTER: Only show students in the logged-in student's own class & section
+            const classmates = state.students.filter(peer => peer.className === s.className);
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                        <h3 class="font-bold text-slate-900">My Classmates — ${s.className} Only</h3>
+                        <p class="text-xs text-slate-500">Privacy Protected: Only students enrolled in ${s.className} are visible here</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-bold">${classmates.length} Students</span>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500">
+                            <tr><th class="py-3.5 px-5">Roll No</th><th class="py-3.5 px-5">Student Name</th><th class="py-3.5 px-5">Class</th></tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${classmates.map(peer => `
+                                <tr class="${peer.id === s.id ? 'bg-brand-50/40' : ''}">
+                                    <td class="py-3.5 px-5 font-mono text-xs font-bold text-slate-600">${peer.rollNo}</td>
+                                    <td class="py-3.5 px-5 font-semibold text-slate-900">
+                                        ${peer.name} ${peer.id === s.id ? '<span class="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-brand-600 text-white">You</span>' : ''}
+                                    </td>
+                                    <td class="py-3.5 px-5 text-xs text-slate-500">${peer.className}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function renderStudentFeeView() {
+            const s = getCurrentStudent();
+            return `
+                <div class="max-w-xl bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                    <div class="flex justify-between items-start border-b border-slate-100 pb-4">
+                        <div>
+                            <span class="text-xs font-semibold uppercase text-slate-400">Student Tuition Fee Record</span>
+                            <h3 class="text-xl font-bold text-slate-900 mt-1">${s.name}</h3>
+                            <p class="text-xs text-slate-500">${s.className} • ID ${s.id} • Roll #${s.rollNo}</p>
+                        </div>
+                        ${getStatusBadge(s.feeStatus)}
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-500">Monthly Tuition Fee:</span><strong>PKR ${Number(s.monthlyFee).toLocaleString()}</strong></div>
+                        <div class="flex justify-between"><span class="text-slate-500">Due Date:</span><strong>${s.feeDueDate}</strong></div>
+                    </div>
+                    <div class="pt-3 border-t border-slate-100 flex justify-end">
+                        <button onclick="openFeeVoucherModal('${s.id}')" class="px-4 py-2 rounded-xl bg-brand-600 text-white text-xs font-semibold">
+                            View / Print Fee Voucher
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStudentNoticesAndTests() {
+            const s = getCurrentStudent();
+            const myTests = state.testUpdates.filter(tu => tu.className === s.className);
+            return `
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-3">Upcoming Class Tests & Assignments (${s.className})</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${myTests.length ? myTests.map(tu => `
+                                <div class="bg-white p-5 rounded-2xl border border-amber-200/80 shadow-xs">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold">${tu.subject}</span>
+                                        <span class="text-xs font-mono text-rose-600 font-semibold">Date: ${tu.dueDate}</span>
+                                    </div>
+                                    <h4 class="font-bold text-slate-900">${tu.title}</h4>
+                                    <p class="text-xs text-slate-600 mt-1">${tu.details}</p>
+                                    <p class="text-[11px] text-slate-400 mt-2">Assigned by ${tu.teacherName}</p>
+                                </div>
+                            `).join('') : `<p class="text-xs text-slate-400">No upcoming test updates for ${s.className}.</p>`}
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="font-bold text-slate-900 mb-3">General School Notices</h3>
+                        ${renderNoticesManager(false)}
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderStudentLeaveRequest() {
+            const s = getCurrentStudent();
+            const myLeaves = state.leaveRequests.filter(l => l.applicantId === s.id);
+            return `
+                <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h3 class="font-bold text-slate-900 mb-3">Request Student Leave</h3>
+                    <form onsubmit="handleSubmitLeave(event, 'Student')" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">From Date</label>
+                            <input type="date" id="lvDate" required value="2026-11-17" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">To Date</label>
+                            <input type="date" id="lvEndDate" required value="2026-11-17" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[11px] font-semibold text-slate-500 mb-1">Reason for Absence</label>
+                            <input type="text" id="lvReason" required placeholder="Explain reason for leave..." class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm">
+                        </div>
+                        <div class="sm:col-span-4 flex justify-end">
+                            <button type="submit" class="px-5 py-2.5 bg-brand-600 text-white text-xs font-semibold rounded-xl">Submit Leave Application</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div class="p-4 border-b border-slate-100 font-bold text-sm">My Leave Applications</div>
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-50 text-xs uppercase text-slate-500"><tr><th class="py-3 px-5">Date Range</th><th class="py-3 px-5">Reason</th><th class="py-3 px-5 text-right">Approval Status</th></tr></thead>
+                        <tbody class="divide-y divide-slate-100">
+                            ${myLeaves.length ? myLeaves.map(l => `
+                                <tr><td class="py-3 px-5 font-mono text-xs">${l.date}${l.endDate && l.endDate !== l.date ? ` to ${l.endDate}` : ''}</td><td class="py-3 px-5 text-xs">${l.reason}</td><td class="py-3 px-5 text-right">${getStatusBadge(l.status)}</td></tr>
+                            `).join('') : `<tr><td colspan="3" class="py-6 text-center text-slate-400 text-xs">No leave applications submitted yet.</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function handleSubmitLeave(e, roleType) {
+            e.preventDefault();
+            const date = document.getElementById('lvDate').value;
+            const endDate = document.getElementById('lvEndDate').value || date;
+            const reason = document.getElementById('lvReason').value.trim();
+
+            if (roleType === 'Teacher') {
+                const t = getCurrentTeacher();
+                state.leaveRequests.unshift({
+                    id: 'LV-' + Date.now(),
+                    applicantId: t.id,
+                    applicantName: t.name,
+                    applicantRole: 'Teacher',
+                    classInfo: `${t.subject} Faculty`,
+                    date,
+                    endDate,
+                    reason,
+                    status: 'Pending'
+                });
+            } else {
+                const s = getCurrentStudent();
+                state.leaveRequests.unshift({
+                    id: 'LV-' + Date.now(),
+                    applicantId: s.id,
+                    applicantName: s.name,
+                    applicantRole: 'Student',
+                    classInfo: `${s.className} (Roll ${s.rollNo})`,
+                    date,
+                    endDate,
+                    reason,
+                    status: 'Pending'
+                });
+            }
+            saveState();
+            renderApp();
+            showToast('Leave request sent to Admin & Principal!');
+        }
+
+        // =========================================================================
+        // 11. INITIALIZE APPLICATION
+        // =========================================================================
+        window.addEventListener('DOMContentLoaded', () => {
+            renderApp();
+        });
+    </script>
+</body>
+</html>
